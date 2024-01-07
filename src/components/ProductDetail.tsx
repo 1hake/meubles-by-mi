@@ -1,0 +1,105 @@
+import 'yet-another-react-lightbox/styles.css'
+
+import React, { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import Lightbox from 'yet-another-react-lightbox'
+
+import useSingleDoc from '../hooks/useSingleDoc'
+import ColorChooser from './ColorChooser'
+import NumberInput from './NumberInput'
+
+const availableColors = ['red', 'green', 'blue', 'yellow'] // Add your array of colors
+
+const ProductDetail = () => {
+  const { id } = useParams<{ id: string }>()
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [selectedColor, setSelectedColor] = useState('')
+  const [quantity, setQuantity] = useState(1)
+
+  const singleElement = useSingleDoc('products', id)
+
+  const handleImageClick = () => {
+    setLightboxOpen(true)
+  }
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedColor(e.target.value)
+  }
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuantity(parseInt(e.target.value, 10))
+  }
+
+  const handleBuyClick = () => {
+    console.log(`Buying ${quantity} ${selectedColor} ${singleElement.name}(s)`)
+  }
+
+  if (!singleElement) {
+    return null
+  }
+
+  const { name, main_image, related_images, description, price } = singleElement
+
+  return (
+    <div className="container gap-10 mx-auto px-4 py-8 flex flex-col lg:flex-row items-center justify-center">
+      <div className="flex flex-col gap-4 justify-start">
+        {related_images.map((relatedImage, index) => (
+          <img
+            key={index}
+            src={relatedImage}
+            alt={`Related Image ${index + 1}`}
+            className="h-auto cursor-pointer rounded-lg max-w-[100px]"
+            onClick={handleImageClick}
+          />
+        ))}
+      </div>
+      <div className="w-full lg:w-1/2 ">
+        <div className="mb-4 lg:h-full">
+          <img src={main_image} alt={name} className="w-full h-auto lg:h-full rounded-lg" />
+        </div>
+      </div>
+
+      {/* Related Images Section */}
+
+      <div className="w-full lg:w-1/2">
+        <div className="text-left mb-4">
+          <h1 className="text-3xl font-bold mb-2">{name}</h1>
+          <p className="text-2xl font-bold mb-2">${price.toFixed(2)}</p>
+          <p className="text-base mb-4">{description}</p>
+
+          <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-center items-center">
+            {/* Color Chooser Input */}
+            <div className="mb-4 lg:mb-0">
+              <label className="block text-sm mb-2">Choose Color:</label>
+              <ColorChooser colors={availableColors} selectedColor={selectedColor} onColorChange={handleColorChange} />
+            </div>
+
+            {/* Quantity Input */}
+            <div className="mb-4 lg:mb-0">
+              <label className="block text-sm mb-2">Quantity:</label>
+              <NumberInput value={quantity} onChange={handleQuantityChange} />
+            </div>
+
+            {/* Buy Button */}
+          </div>
+          <button className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg" onClick={handleBuyClick}>
+            Buy Now
+          </button>
+        </div>
+      </div>
+
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={[
+          { src: main_image },
+          ...related_images.map((image) => ({
+            src: image
+          }))
+        ]}
+      />
+    </div>
+  )
+}
+
+export default ProductDetail
