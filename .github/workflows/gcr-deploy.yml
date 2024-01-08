@@ -1,0 +1,62 @@
+name: Deploy to GCR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential helper
+        run: gcloud auth configure-docker
+
+      - name: Build and Push Docker image
+        run: |
+          IMAGE=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world:latest
+          docker build -t $IMAGE -f example/server/Dockerfile .
+          docker push $IMAGE
+
+  rollout-restart:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install GKE gcloud Auth Plugin
+        run: gcloud components install gke-gcloud-auth-plugin
+
+      - name: Authenticate with GKE
+        run: |
+          echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY_B64 }}" | base64 -d > gcp-key.json
+          gcloud auth activate-service-account --key-file=gcp-key.json
+          gcloud container clusters get-credentials gobc --zone europe-west9-a --project gobc-407614
+
+      - name: Set up Kubernetes context
+        uses: stefanprodan/kube-tools@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+      - name: Set up Kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > $HOME/.kube/config
+          chmod 700 $HOME/.kube/config
+      - name: List Kubernetes contexts
+        run: kubectl config get-contexts
+      - name: Change Kubernetes Context
+        run: kubectl config use-context gke_gobc-407614_europe-west9-a_gobc
