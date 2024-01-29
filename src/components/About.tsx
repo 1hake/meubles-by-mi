@@ -1,8 +1,8 @@
-import React from "react";
-import { SectionTitle } from "./SectionTitle";
-import { Socials } from "./Socials";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import myImg from "../images/hero.jpg";
+import React from 'react'
+
+import myImg from '../images/hero.jpg'
+import { SectionTitle } from './SectionTitle'
+import { Socials } from './Socials'
 
 export const About = () => {
   return (
@@ -20,15 +20,11 @@ export const About = () => {
           href="mailto:atelier.etch@gmail.com"
           className="block mt-3 text-md md:text-lg text-gray-700 dark:text-gray-300 underline decoration-1 hover:text-indigo-500 dark:hover:text-indigo-500"
         >
-          atelier.etch@gmail.com
+          hjdfhjss
         </a>
       </div>
 
-      <img
-        src={myImg}
-        alt="Arfan"
-        className="w-full md:w-6/12 rounded-lg object-cover"
-      />
+      <img src={myImg} alt="Arfan" className="w-full md:w-6/12 rounded-lg object-cover" />
     </div>
-  );
-};
+  )
+}
