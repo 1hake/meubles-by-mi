@@ -1,29 +1,15 @@
-# Stage 1: Node image to build the React app
-FROM node:14 as build
+FROM --platform=linux/amd64 node:21
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json /app/
+COPY package.json .
 
-# Install dependencies
-RUN npm install
+RUN yarn install
 
-# Copy the rest of the React app
-COPY . /app
+COPY . .
 
-# Build the app
-RUN npm run build
+RUN yarn run build
 
-# Stage 2: Nginx server to serve the React app
-FROM nginx:alpine
+EXPOSE 5173
 
-# Copy the build output from stage 1
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
-
-# Start Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+CMD [ "yarn", "run", "dev" ]
