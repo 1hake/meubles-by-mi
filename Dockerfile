@@ -1,21 +1,25 @@
-FROM --platform=linux/amd64 node:21
+# First stage: Build the application
+# Name this stage as 'builder'
+FROM --platform=linux/amd64 node:21 AS builder
 
-
-# set the working directory
+# Set the working directory
 WORKDIR /app
 
-# copy package.json and package-lock.json files
+# Copy package.json and package-lock.json files
 COPY package.json ./
 COPY package-lock.json ./
 
-# install dependencies
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
-# copy everything to /app directory
+# Copy everything to /app directory
 COPY ./ ./
 
-
+# Build the application
 RUN npm run build
 
+# Second stage: Setup the Nginx server
 FROM nginx:alpine
-COPY dist/ /usr/share/nginx/html
+
+# Copy the build output from the 'builder' stage
+COPY --from=builder /app/dist/ /usr/share/nginx/html
