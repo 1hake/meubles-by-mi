@@ -16,7 +16,7 @@ spec:
         - name: meubles-by-mi
           image: gcr.io/gobc-407614/meubles-by-mi:{DOCKER_IMAGE_TAG}
           ports:
-            - containerPort: 5173
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -27,6 +27,7 @@ spec:
   selector:
     app: meubles-by-mi
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 5173
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      nodePort: 31000

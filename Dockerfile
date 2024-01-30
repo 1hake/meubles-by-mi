@@ -1,19 +1,21 @@
 FROM --platform=linux/amd64 node:21
 
-# Set the working directory in the container
+
+# set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# copy package.json and package-lock.json files
+COPY package.json ./
+COPY package-lock.json ./
 
-# Install app dependencies
-RUN yarn install
+# install dependencies
+RUN npm install --legacy-peer-deps
 
-# Copy the rest of your application code to the working directory
-COPY . .
+# copy everything to /app directory
+COPY ./ ./
 
-# Expose a port to communicate with the React app
-EXPOSE 5173
+# run the app
+CMD ["npm", "start"]
 
-# Start your React app
-CMD ["yarn", "run", "dev"]
+FROM nginx:alpine
+COPY dist/ /usr/share/nginx/html
