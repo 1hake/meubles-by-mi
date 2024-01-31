@@ -1,14 +1,11 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import Lightbox from 'react-image-lightbox'
 import PhotoAlbum from 'react-photo-album'
 
 import useCategories from '../hooks/useCategorie'
-import useDatabase from '../hooks/useDatabase'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { getDownloadUrl } from '../utils/firebaseUtils'
 import { MyDialog } from './Panel'
-import { SectionTitle } from './SectionTitle'
 
 export interface ShowcaseProps {
   limit: boolean
@@ -71,7 +68,7 @@ export const DisplayCategory: React.SFC<ShowcaseProps> = ({ limit, category }) =
       <PhotoAlbum
         photos={images}
         layout={'columns'}
-        columns={isMobile ? 2 : 3}
+        columns={isMobile ? 2 : 5}
         onClick={(event, photo, index) => {
           setIndex(index + 1)
         }}

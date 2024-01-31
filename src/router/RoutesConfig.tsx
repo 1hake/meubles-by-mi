@@ -1,32 +1,37 @@
-import React from "react";
+import React from 'react'
 
-import ProductCategory from "../components/ProductCategory";
-import ProductDetail from "../components/ProductDetail";
-import { Category } from "../pages/Category";
-import { Home } from "../pages/Home";
+import Cart from '../components/Cart'
+import ProductCategory from '../components/ProductCategory'
+import ProductDetail from '../components/ProductDetail'
+import { Home } from '../pages/Home'
 
 interface Route {
-  name: string;
-  path: string;
-  component: JSX.Element;
-  isAnonymous?: boolean;
-  isProtected?: boolean;
+  name: string
+  path: string
+  component: JSX.Element
+  isAnonymous?: boolean
+  isProtected?: boolean
 }
 
 export const routesConfig: Route[] = [
   {
-    name: "home",
-    path: "/",
-    component: <Home />,
+    name: 'home',
+    path: '/',
+    component: <Home />
   },
   {
-    name: 'Product', 
+    name: 'Product',
     path: '/product/:id',
-    component: <ProductDetail />,
-  }, 
+    component: <ProductDetail />
+  },
   {
-    name: 'Categories', 
+    name: 'Categories',
     path: '/categories/:category',
-    component: <ProductCategory />,
+    component: <ProductCategory />
+  },
+  {
+    name: 'Cart',
+    path: '/cart',
+    component: <Cart />
   }
-];
+]

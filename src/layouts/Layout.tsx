@@ -15,7 +15,7 @@ export const Layout = ({ children }) => {
   return (
     <>
       <div className="bg-white min-h-screen font-inter transition duration-1000 ease-in-out">
-        <div className="max-w-8xl w-11/12 mx-auto">
+        <div className="max-w-8xl  mx-auto px-4 lg:px-8 lg:pt-4">
           {!isHomePage ? <HeaderBar /> : <HeroSection />}
           {children}
           <Footer />

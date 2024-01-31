@@ -1,15 +1,9 @@
-import "../hooks/init";
+import '../hooks/init'
 
-import React, { useEffect, useState } from "react";
+import React from 'react'
 
-import { About } from "../components/About";
-import { DisplayCategory } from "../components/DisplayCategorie";
-import { Footer } from "../components/Footer";
-import { HeroSection } from "../components/HeroSection";
-import { ProductsShowCase } from "../components/ProductsShowCase";
-import { Services } from "../components/Services";
-import { ShowcaseIntro } from "../components/Showcase";
-import Works from "../components/Works";
+import { ProductsShowCase } from '../components/ProductsShowCase'
+import { Services } from '../components/Services'
 
 export const Home = () => {
   return (
@@ -22,5 +16,5 @@ export const Home = () => {
       {/* <ImagePanel /> */}
       {/* <About /> */}
     </>
-  );
-};
+  )
+}
