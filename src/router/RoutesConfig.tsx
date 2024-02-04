@@ -1,6 +1,7 @@
 import React from 'react'
 
 import Cart from '../components/Cart'
+import { Footer } from '../components/Footer'
 import ProductCategory from '../components/ProductCategory'
 import ProductDetail from '../components/ProductDetail'
 import { Home } from '../pages/Home'
@@ -33,5 +34,10 @@ export const routesConfig: Route[] = [
     name: 'Cart',
     path: '/cart',
     component: <Cart />
+  },
+  {
+    name: 'contact',
+    path: '/contact',
+    component: <Footer />
   }
 ]

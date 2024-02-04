@@ -17,6 +17,7 @@ const ProductDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
+  console.log('🚀 ~ ProductDetail ~ quantity:', quantity)
   const { addItem } = useCartContext()
 
   const singleElement = useSingleDoc('products', id)
@@ -26,11 +27,11 @@ const ProductDetail = () => {
   }
 
   const handleColorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedColor(e.target.value)
+    setSelectedColor(e)
   }
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuantity(parseInt(e.target.value, 10))
+    setQuantity(e)
   }
 
   const handleBuyClick = () => {
@@ -85,7 +86,7 @@ const ProductDetail = () => {
             <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-center items-center">
               {/* Color Chooser Input */}
               <div className="mb-4 lg:mb-0">
-                <label className="block text-sm mb-2">Choose Color:</label>
+                <label className="block text-sm mb-2">Choissisez une couleur:</label>
                 <ColorChooser
                   colors={availableColors}
                   selectedColor={selectedColor}
@@ -95,14 +96,14 @@ const ProductDetail = () => {
 
               {/* Quantity Input */}
               <div className="mb-4 lg:mb-0">
-                <label className="block text-sm mb-2">Quantity:</label>
+                <label className="block text-sm mb-2">Quantité:</label>
                 <NumberInput value={quantity} onChange={handleQuantityChange} />
               </div>
 
               {/* Buy Button */}
             </div>
             <button className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg" onClick={handleBuyClick}>
-              Buy Now
+              Acheter
             </button>
           </div>
         </div>

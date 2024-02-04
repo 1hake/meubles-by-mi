@@ -6,7 +6,6 @@ import { projectFirestore } from '../firebase-config'
 // useDatabase hook to fetch data from firestore using firebase version 9 modular
 
 const useCategories = (collectionName: string, limit: boolean, category) => {
-  console.log('🚀 ~ file: useCategorie.ts:9 ~ useCategories ~ category:', category)
   const [images, setImages] = useState([])
 
   useEffect(() => {
@@ -32,7 +31,7 @@ const useCategories = (collectionName: string, limit: boolean, category) => {
     return () => {
       isSubscribed = false
     }
-  }, [collectionName])
+  }, [category])
 
   return images
 }

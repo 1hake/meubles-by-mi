@@ -1,7 +1,6 @@
 import React from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 
-import { Footer } from '../components/Footer'
 import { HeaderBar } from '../components/HeaderBar' // Import your modified HeaderBar component
 import { HeroSection } from '../components/HeroSection'
 
@@ -15,10 +14,10 @@ export const Layout = ({ children }) => {
   return (
     <>
       <div className="bg-white min-h-screen font-inter transition duration-1000 ease-in-out">
+        {!isHomePage ? <HeaderBar /> : <HeroSection />}
         <div className="max-w-8xl  mx-auto px-4 lg:px-8 lg:pt-4">
-          {!isHomePage ? <HeaderBar /> : <HeroSection />}
           {children}
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </div>
     </>

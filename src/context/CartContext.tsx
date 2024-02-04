@@ -25,33 +25,34 @@ const CartProvider = ({ children }) => {
 
   const addItem = (newItem) => {
     setCart((prevCart) => {
-      // Check if the item already exists in the cart
       const existingItemIndex = prevCart.findIndex((item) => item.id === newItem.id)
       if (existingItemIndex !== -1) {
-        // Update quantity immutably
+        // Update quantity immutably by adding the newItem's quantity to the existing item's quantity
         const updatedCart = [...prevCart]
         updatedCart[existingItemIndex] = {
           ...prevCart[existingItemIndex],
-          quantity: prevCart[existingItemIndex].quantity + 1
+          quantity: prevCart[existingItemIndex].quantity + newItem.quantity
         }
         return updatedCart
       } else {
-        // Item does not exist, add a new one
-        return [...prevCart, { ...newItem, quantity: 1 }]
+        // Item does not exist, add the new one with its quantity
+        // Ensure newItem has a default quantity if not provided
+        const itemToAdd = { ...newItem, quantity: newItem.quantity || 1 }
+        return [...prevCart, itemToAdd]
       }
     })
   }
 
-  const updateItemQuantity = (itemId, quantity) => {
-    if (quantity <= 0) {
-      return removeItem(itemId) // Removes item if quantity is 0 or less
-    }
-    setCart((prevCart) => prevCart.map((cartItem) => (cartItem.id === itemId ? { ...cartItem, quantity } : cartItem)))
+  const updateItemQuantity = (itemId, newQuantity) => {
+    setCart((prevCart) =>
+      prevCart.map((cartItem) => (cartItem.id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem))
+    )
   }
 
   const removeItem = (itemId) => {
     setCart((prevCart) => prevCart.filter((cartItem) => cartItem.id !== itemId))
   }
+
   const contextValue = { cart, addItem, updateItemQuantity, removeItem }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>

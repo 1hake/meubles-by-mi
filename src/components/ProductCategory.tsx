@@ -27,37 +27,35 @@ interface FirebaseElement {
 export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
   const { category } = useParams()
   const [images, setImages] = useState<FirebaseElement[]>([])
-  console.log('🚀 ~ file: ProductCategory.tsx:29 ~ images:', images)
+  console.log('🚀 ~ images:', images)
   const [index, setIndex] = useState<number>(-1)
   const elements: FirebaseElement[] = useCategories('products', false, category)
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (elements.length > 0) {
-      const promises = elements.map((element: FirebaseElement) => {
-        return getDownloadUrl(element.main_image)
+    const promises = elements.map((element: FirebaseElement) => {
+      return getDownloadUrl(element.main_image)
+    })
+    Promise.all(promises).then((urls) => {
+      const newImages = urls.map((url, index) => {
+        return {
+          src: url,
+          id: elements[index].id,
+          width: elements[index].width,
+          height: elements[index].height,
+          name: elements[index].name,
+          description: elements[index].description,
+          related_images: elements[index].related_images,
+          gif: elements[index].gif,
+          price: elements[index].price,
+          promotion: elements[index].promotion,
+          new: elements[index].new
+        }
       })
-      Promise.all(promises).then((urls) => {
-        const newImages = urls.map((url, index) => {
-          return {
-            src: url,
-            id: elements[index].id,
-            width: elements[index].width,
-            height: elements[index].height,
-            name: elements[index].name,
-            description: elements[index].description,
-            related_images: elements[index].related_images,
-            gif: elements[index].gif,
-            price: elements[index].price,
-            promotion: elements[index].promotion,
-            new: elements[index].new
-          }
-        })
-        setImages(newImages)
-      })
-    }
-  }, [elements])
+      setImages(newImages)
+    })
+  }, [category, elements])
 
   return (
     <>

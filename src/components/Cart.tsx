@@ -1,50 +1,48 @@
 import React from 'react'
 
 import { useCartContext } from '../context/CartContext'
-import EmptyCard from './EmptyCart'
+import EmptyCart from './EmptyCart'
 
 const Cart = () => {
   const { cart, removeItem } = useCartContext()
+  console.log('🚀 ~ Cart ~ cart:', cart)
 
   if (cart.length === 0) {
-    return <EmptyCard />
+    return <EmptyCart />
   }
 
   return (
-    <div className="container mx-auto mt-10 p-6 bg-white  rounded-lg">
+    <div className="container mx-auto my-10 p-6 shadow-lg rounded-lg">
       <h2 className="text-3xl font-bold mb-8 text-center">Votre Panier</h2>
-      <div className="flex flex-col divide-y divide-gray-200">
-        {cart.map((item, index) => (
-          <div key={index} className="flex items-center py-4">
-            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded mr-4" />
-            <div className="flex-grow">
-              <h3 className="text-lg font-semibold">{item.name}</h3>
-              <p className="text-sm text-gray-600">Color: {item.color}</p>
-              <p className="text-sm text-gray-600">Price: ${item.price.toFixed(2)}</p>
+
+      {cart.map((item, index) => (
+        <div
+          key={index}
+          className="mb-4 p-4 border border-gray-200 rounded-lg flex flex-col md:flex-row md:justify-between md:items-center"
+        >
+          <div className="flex items-center md:w-2/3">
+            <div className="flex-shrink-0 h-16 w-16">
+              <img className="h-16 w-16 rounded-full object-cover" src={item.image} alt={item.name} />
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-lg">Qty: {item.quantity}</span>
-              <button
-                className="text-red-500 hover:text-red-700 focus:outline-none"
-                onClick={() => removeItem(item.id)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <div className="ml-4">
+              <div className="text-xl font-medium text-gray-900">{item.name}</div>
+              <div className="text-gray-500">Couleur : {item.color}</div>
+              <div className="text-gray-500">Prix : {item.price.toFixed(2)}€</div>
+              <div className="text-gray-500">Quantité : {item.quantity}</div>
             </div>
           </div>
-        ))}
-      </div>
+          <div className="mt-4 md:mt-0 md:w-1/3">
+            <div className="text-xl font-medium text-gray-900">{(item.price * item.quantity).toFixed(2)}€</div>
+            <button onClick={() => removeItem(item.id)} className="mt-2 text-red-600 hover:text-red-900 text-center">
+              Retirer
+            </button>
+          </div>
+        </div>
+      ))}
+
       <div className="text-right mt-8">
         <span className="text-2xl font-bold">
-          Total: ${cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}
+          Total : {cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}€
         </span>
       </div>
     </div>

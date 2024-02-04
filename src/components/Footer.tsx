@@ -4,7 +4,7 @@ import React from 'react'
 
 export const Footer = () => {
   return (
-    <div className="p-8 bg-slate-800 text-center text-gray-300 rounded-lg">
+    <div className="p-8 bg-slate-800 text-center text-gray-300 rounded-lg mt-10">
       <div className="md:flex md:justify-between md:items-center">
         <div className="md:w-1/2 md:text-left mb-4 md:mb-0 flex justify-center items-center gap-4">
           <a href="#" className="text-gray-500 hover:text-indigo-500 mx-2">

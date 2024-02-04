@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom'
 
 const EmptyCard = () => {
   return (
-    <div className="max-w-sm mx-auto my-10 p-5  flex flex-col items-center">
+    <div className="max-w-sm mx-auto my-10 p-5  flex flex-col items-center justify-center h-96">
       <FontAwesomeIcon icon={faShoppingCart} size="3x" className="text-gray-400 mb-4" />
-      <p className="text-gray-600 mb-4">Your cart is currently empty.</p>
-      <Link to="/" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+      <p className="text-gray-600 mb-4">Votre panier est vide</p>
+      <Link to="/" className="px-4 py-2 bg-black text-white rounded hover:bg-blue-600 transition-colors">
         Go to Homepage
       </Link>
     </div>
