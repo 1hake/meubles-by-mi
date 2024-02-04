@@ -9,7 +9,7 @@ const EmptyCard = () => {
       <FontAwesomeIcon icon={faShoppingCart} size="3x" className="text-gray-400 mb-4" />
       <p className="text-gray-600 mb-4">Votre panier est vide</p>
       <Link to="/" className="px-4 py-2 bg-black text-white rounded hover:bg-blue-600 transition-colors">
-        Go to Homepage
+        Retour à la boutique
       </Link>
     </div>
   )
