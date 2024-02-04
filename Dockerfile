@@ -8,7 +8,6 @@ WORKDIR /app
 # Copy package.json and package-lock.json files
 COPY package.json ./
 
-
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
@@ -22,4 +21,11 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy the build output from the 'builder' stage
-COPY --from=builder /app/dist/ /usr/share/nginx/html
+COPY --from=builder /app/build/ /usr/share/nginx/html
+
+# Copy custom Nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80 to the Docker host, so we can access it 
+# from the outside.
+EXPOSE 80
