@@ -6,7 +6,6 @@ import Lightbox from 'yet-another-react-lightbox'
 
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
-import ColorChooser from './ColorChooser'
 import NumberInput from './NumberInput'
 import { SectionTitle } from './SectionTitle'
 
@@ -41,9 +40,15 @@ const ProductDetail = () => {
       price: singleElement.price,
       color: selectedColor,
       quantity: quantity,
-      image: singleElement.main_image
+      image: singleElement.main_image,
+      facebookProductUrl: singleElement.facebookProductUrl
     })
     console.log(`Added ${quantity} ${selectedColor} ${singleElement.name}(s) to cart`)
+  }
+
+  const navigateTo = (url: string) => {
+    // go to facebook page
+    window.location.href = url
   }
 
   if (!singleElement) {
@@ -79,20 +84,20 @@ const ProductDetail = () => {
 
         <div className="w-full lg:w-1/2">
           <div className="text-left mb-4">
-            <h1 className="text-3xl font-bold mb-2">{name}</h1>
-            <p className="text-2xl font-bold mb-2">${price.toFixed(2)}</p>
+            {/* <h1 className="text-3xl font-bold mb-2">{name}</h1> */}
+            <p className="text-2xl font-bold mb-2">{price.toFixed(2)}€</p>
             <p className="text-base mb-4">{description}</p>
 
             <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-center items-center">
               {/* Color Chooser Input */}
-              <div className="mb-4 lg:mb-0">
+              {/* <div className="mb-4 lg:mb-0">
                 <label className="block text-sm mb-2">Choissisez une couleur:</label>
                 <ColorChooser
                   colors={availableColors}
                   selectedColor={selectedColor}
                   onColorChange={handleColorChange}
                 />
-              </div>
+              </div> */}
 
               {/* Quantity Input */}
               <div className="mb-4 lg:mb-0">
@@ -102,7 +107,11 @@ const ProductDetail = () => {
 
               {/* Buy Button */}
             </div>
-            <button className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg" onClick={handleBuyClick}>
+            <button
+              disabled={singleElement.facebookProductUrl}
+              className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg"
+              onClick={navigateTo}
+            >
               Acheter
             </button>
           </div>

@@ -8,7 +8,7 @@ const PromotionTag: React.FC<PromotionTagProps> = ({ percentage }) => {
   return (
     <div className="flex items-center space-x-2">
       <div className="bg-red-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">
-        <div className="text-white">{percentage}%</div>
+        <div className="text-white">PROMOTION</div>
       </div>
     </div>
   )

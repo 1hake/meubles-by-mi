@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom'
 import useDatabase, { DatabaseElement } from '../hooks/useDatabase'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { getDownloadUrl } from '../utils/firebaseUtils'
-import FilterBar from './FilterBar'
 import ProductCard from './ProductCard'
 import { SectionTitle } from './SectionTitle'
 
@@ -69,14 +68,14 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
     <>
       <section className="py-4 col-span-10 col-start-2 col-end-12">
         <SectionTitle id="showcase">Produits</SectionTitle>
-        <FilterBar
+        {/* <FilterBar
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           sortByPrice={sortByPrice}
           setSortByPrice={setSortByPrice}
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
-        />
+        /> */}
         <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {filteredImages.map((image, index) => (
             <ProductCard
