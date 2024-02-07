@@ -17,7 +17,6 @@ const ProductDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [selectedColor, setSelectedColor] = useState('')
   const [quantity, setQuantity] = useState(1)
-  console.log('🚀 ~ ProductDetail ~ quantity:', quantity)
   const { addItem } = useCartContext()
 
   const singleElement = useSingleDoc('products', id)
@@ -63,15 +62,16 @@ const ProductDetail = () => {
           </div>
         </div>
         <div className="flex lg:flex-col gap-4 justify-start">
-          {related_images.map((relatedImage, index) => (
-            <img
-              key={index}
-              src={relatedImage}
-              alt={`Related Image ${index + 1}`}
-              className="h-auto cursor-pointer rounded-lg max-w-[100px]"
-              onClick={handleImageClick}
-            />
-          ))}
+          {related_images.length > 0 &&
+            related_images.map((relatedImage, index) => (
+              <img
+                key={index}
+                src={relatedImage}
+                alt={`Related Image ${index + 1}`}
+                className="h-auto cursor-pointer rounded-lg max-w-[100px]"
+                onClick={handleImageClick}
+              />
+            ))}
         </div>
         <div className="lg:border-2 border-black lg:h-80 mx-8"></div>
 

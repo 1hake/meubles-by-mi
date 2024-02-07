@@ -18,18 +18,26 @@ interface ProductCardProps {
   src: string
   name: string
   price: number
-  description: string
+  description?: string // Make description optional
   promotion?: number
   new?: boolean
   onClick: () => void
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ src, name, price, description, promotion, new: isNew, onClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  src,
+  name,
+  price,
+  description = '', // Default to an empty string if no description is provided
+  promotion,
+  new: isNew,
+  onClick
+}) => {
   const [truncatedDescription, setTruncatedDescription] = useState<string>(description)
   const maxDescriptionLength = 100 // Adjust as needed
 
   useEffect(() => {
-    if (description.length > maxDescriptionLength) {
+    if (description && description.length > maxDescriptionLength) {
       setTruncatedDescription(description.slice(0, maxDescriptionLength) + '...')
     } else {
       setTruncatedDescription(description)
@@ -50,13 +58,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ src, name, price, description
               Nouveauté
             </span>
           )}
-          {promotion && (
-            <div className="bg-red-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">
-              <div className="text-white">{promotion}%</div>
-            </div>
-          )}
+          {promotion && <PromotionTag percentage={promotion} />}
         </div>
-        <p className="text-gray-700 text-sm mb-2">{truncatedDescription}</p>
+        {truncatedDescription ? (
+          <p className="text-gray-700 text-sm mb-2">{truncatedDescription}</p>
+        ) : (
+          <p className="text-gray-500 text-sm mb-2">No description available.</p> // Display a default message when there's no description
+        )}
         <div className="flex justify-between items-end">
           <div>
             <p className="text-gray-800 text-xl">{price}€</p>
