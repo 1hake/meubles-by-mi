@@ -19,6 +19,7 @@ const ProductDetail = () => {
   const { addItem } = useCartContext()
 
   const singleElement = useSingleDoc('products', id)
+  console.log('🚀 ~ ProductDetail ~ singleElement:', singleElement)
 
   const handleImageClick = () => {
     setLightboxOpen(true)
@@ -108,9 +109,9 @@ const ProductDetail = () => {
               {/* Buy Button */}
             </div>
             <button
-              disabled={singleElement.facebookProductUrl}
+              disabled={!singleElement.facebookProductUrl}
               className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg"
-              onClick={navigateTo}
+              onClick={() => navigateTo(singleElement.facebookProductUrl)}
             >
               Acheter
             </button>
