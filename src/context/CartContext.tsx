@@ -53,7 +53,11 @@ const CartProvider = ({ children }) => {
     setCart((prevCart) => prevCart.filter((cartItem) => cartItem.id !== itemId))
   }
 
-  const contextValue = { cart, addItem, updateItemQuantity, removeItem }
+  const calculateTotal = () => {
+    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  }
+
+  const contextValue = { cart, addItem, updateItemQuantity, removeItem, calculateTotal }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
 }

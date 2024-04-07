@@ -1,38 +1,38 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { collection, getDocs, query } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
 
-import { projectFirestore } from "../firebase-config";
+import { projectFirestore } from '../firebase-config'
 
 // useDatabase hook to fetch data from firestore using firebase version 9 modular
 
 const useDatabase = (collectionName: string, limit: boolean) => {
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([])
 
   useEffect(() => {
-    let isSubscribed = true;
+    let isSubscribed = true
 
     const fetchData = async () => {
-      const q = query(collection(projectFirestore, "products"));
-      const querySnapshot = await getDocs(q);
-      let documents: any = [];
+      const q = query(collection(projectFirestore, collectionName))
+      const querySnapshot = await getDocs(q)
+      let documents: any = []
       querySnapshot.forEach((doc: any) => {
-        documents.push({ ...doc.data(), id: doc.id });
-      });
+        documents.push({ ...doc.data(), id: doc.id })
+      })
 
       if (limit) {
-        documents = documents.filter((doc: any) => doc.forShowcase === true);
+        documents = documents.filter((doc: any) => doc.forShowcase === true)
       }
       if (isSubscribed) {
-        setImages(documents);
+        setImages(documents)
       }
-    };
-    fetchData();
+    }
+    fetchData()
     return () => {
-      isSubscribed = false;
-    };
-  }, [collectionName]);
+      isSubscribed = false
+    }
+  }, [collectionName])
 
-  return images;
-};
+  return images
+}
 
-export default useDatabase;
+export default useDatabase

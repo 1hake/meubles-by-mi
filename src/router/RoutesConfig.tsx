@@ -1,9 +1,12 @@
 import React from 'react'
 
-import Cart from '../components/Cart'
+import { Cart } from '../components/Cart'
+import { ConfirmationPage } from '../components/ConfirmationPage'
 import { Footer } from '../components/Footer'
 import ProductCategory from '../components/ProductCategory'
 import ProductDetail from '../components/ProductDetail'
+import SignInForm from '../components/Users/SignInForm'
+import SignUpForm from '../components/Users/SignupForm'
 import { Home } from '../pages/Home'
 
 interface Route {
@@ -39,5 +42,20 @@ export const routesConfig: Route[] = [
     name: 'contact',
     path: '/contact',
     component: <Footer />
+  },
+  {
+    name: 'signin',
+    path: '/signin',
+    component: <SignInForm />
+  },
+  {
+    name: 'signup',
+    path: '/signup',
+    component: <SignUpForm />
+  },
+  {
+    name: 'confirmation',
+    path: '/confirmation',
+    component: <ConfirmationPage />
   }
 ]

@@ -111,7 +111,7 @@ const ProductDetail = () => {
             <button
               disabled={!singleElement.facebookProductUrl}
               className="bg-blue-500 w-full mt-8 text-white px-8 py-4 rounded-lg"
-              onClick={() => navigateTo(singleElement.facebookProductUrl)}
+              onClick={() => handleBuyClick()}
             >
               Acheter
             </button>
