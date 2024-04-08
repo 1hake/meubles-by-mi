@@ -6,7 +6,7 @@ import { Footer } from '../components/Footer'
 import ProductCategory from '../components/ProductCategory'
 import ProductDetail from '../components/ProductDetail'
 import SignInForm from '../components/Users/SignInForm'
-import SignUpForm from '../components/Users/SignupForm'
+import SignUpForm from '../components/Users/SignUpForm'
 import UserOrdersPage from '../components/Users/UserOrders'
 import { Home } from '../pages/Home'
 
