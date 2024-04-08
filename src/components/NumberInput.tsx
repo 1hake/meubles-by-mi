@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 const NumberInput = ({ value, onChange }) => {
   const handleDecrement = () => {
-    onChange(value - 1)
+    if (value > 1) onChange(value - 1) // Optional: Prevent decrement below 1
   }
 
   const handleIncrement = () => {
@@ -10,56 +10,44 @@ const NumberInput = ({ value, onChange }) => {
   }
 
   return (
-    <div className="py-2 px-3 inline-block bg-white border border-gray-200 rounded-lg dark:bg-slate-900 dark:border-gray-700">
-      <div className="flex items-center gap-x-1.5">
+    <div className="w-full py-2 px-3 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-slate-800 dark:border-gray-700">
+      <div className="flex justify-between items-center">
         <button
           type="button"
-          className="w-6 h-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-md border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+          className="text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md h-8 w-8 flex justify-center items-center"
           onClick={handleDecrement}
-          data-hs-input-number-decrement
+          disabled={value <= 1} // Optional: Disable button if value is 1 or less
         >
           <svg
-            className="flex-shrink-0 w-3.5 h-3.5"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M5 12h14" />
+            <line x1="5" y1="12" x2="19" y2="12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         <input
-          className="p-0 w-6 bg-transparent border-0 text-gray-800 text-center focus:ring-0 dark:text-white"
+          className="text-center w-full mx-2 text-lg leading-none bg-transparent outline-none border-none text-gray-800 dark:text-white"
           type="text"
           value={value}
-          onChange={(e) => onChange(parseInt(e.target.value, 10))}
-          data-hs-input-number-input
+          onChange={(e) => onChange(Math.max(1, parseInt(e.target.value, 10) || 1))} // Prevent non-numeric values and negative values
         />
         <button
           type="button"
-          className="w-6 h-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-md border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600"
+          className="text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md h-8 w-8 flex justify-center items-center"
           onClick={handleIncrement}
-          data-hs-input-number-increment
         >
           <svg
-            className="flex-shrink-0 w-3.5 h-3.5"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
+            <line x1="12" y1="5" x2="12" y2="19" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <line x1="5" y1="12" x2="19" y2="12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>

@@ -1,52 +1,104 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 
+import { useAuth } from '../context/AuthContext'
 import { useCartContext } from '../context/CartContext'
+import CartItem from './CartItem'
+import CartPayment from './CartPayment'
 import EmptyCart from './EmptyCart'
+import { ShippingAdressForm } from './ShippingAdressForm'
 
-const Cart = () => {
-  const { cart, removeItem } = useCartContext()
-  console.log('🚀 ~ Cart ~ cart:', cart)
+export interface ShippingAddress {
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+}
+
+interface CartProps {}
+
+const shippingRates: Record<string, number> = {
+  'Belgique, Luxembourg': 10,
+  France: 10
+}
+
+export const Cart: React.FC<CartProps> = () => {
+  const { cart, removeItem, calculateTotal } = useCartContext()
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: ''
+  })
+  const [selectedCountry, setSelectedCountry] = useState<string>('France')
+  const { currentUser } = useAuth()
+
+  const addressCompleted = Object.values(shippingAddress).every((value) => value !== '')
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
+  }
+
+  const handleAddressSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+  }
+
+  const shippingFee = useMemo(() => shippingRates[selectedCountry], [selectedCountry])
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCountry(e.target.value)
+  }
+
+  const orderInfo = {
+    userId: currentUser?.uid,
+    products: cart.map((item) => ({ productId: item.ref, color: item.color })),
+    shippingAddress
+  }
+
+  const totalPrice = calculateTotal() + shippingFee
 
   if (cart.length === 0) {
     return <EmptyCart />
   }
 
   return (
-    <div className="container mx-auto my-10 p-6 shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold mb-8 text-center">Votre Panier</h2>
-
-      {cart.map((item, index) => (
-        <div
-          key={index}
-          className="mb-4 p-4 border border-gray-200 rounded-lg flex flex-col md:flex-row md:justify-between md:items-center"
-        >
-          <div className="flex items-center md:w-2/3">
-            <div className="flex-shrink-0 h-16 w-16">
-              <img className="h-16 w-16 rounded-full object-cover" src={item.image} alt={item.name} />
-            </div>
-            <div className="ml-4">
-              <div className="text-xl font-medium text-gray-900">{item.name}</div>
-              <div className="text-gray-500">Couleur : {item.color}</div>
-              <div className="text-gray-500">Prix : {item.price.toFixed(2)}€</div>
-              <div className="text-gray-500">Quantité : {item.quantity}</div>
-            </div>
-          </div>
-          <div className="mt-4 md:mt-0 md:w-1/3">
-            <div className="text-xl font-medium text-gray-900">{(item.price * item.quantity).toFixed(2)}€</div>
-            <button onClick={() => removeItem(item.id)} className="mt-2 text-red-600 hover:text-red-900 text-center">
-              Retirer
-            </button>
+    <div className="container mx-auto my-10 p-6 bg-white rounded-lg">
+      <div className="md:grid md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold text-center">Votre Panier</h2>
+          {cart.map((item) => (
+            <CartItem key={item.id} item={item} onRemove={() => removeItem(item.id)} />
+          ))}
+          <div>
+            <label htmlFor="country" className="text-sm font-semibold text-gray-900">
+              Choisissez votre pays:
+            </label>
+            <select
+              id="country"
+              value={selectedCountry}
+              onChange={handleCountryChange}
+              className="mt-1 block w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            >
+              {Object.keys(shippingRates).map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+            <p className="mt-4 text-xl font-semibold">Prix Total: {totalPrice.toFixed(2)}€</p>
           </div>
         </div>
-      ))}
-
-      <div className="text-right mt-8">
-        <span className="text-2xl font-bold">
-          Total : {cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}€
-        </span>
+        {addressCompleted ? (
+          <CartPayment totalPrice={totalPrice} orderInfo={orderInfo} />
+        ) : (
+          <ShippingAdressForm
+            shippingAddress={shippingAddress}
+            handleAddressChange={handleAddressChange}
+            handleAddressSubmit={handleAddressSubmit}
+          />
+        )}
       </div>
     </div>
   )
 }
-
-export default Cart
