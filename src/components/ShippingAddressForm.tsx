@@ -2,7 +2,7 @@ import React from 'react'
 
 import { ShippingAddress } from './Cart'
 
-export const ShippingAdressForm = ({
+export const ShippingAddressForm = ({
   shippingAddress,
   handleAddressChange,
   handleAddressSubmit
@@ -12,7 +12,7 @@ export const ShippingAdressForm = ({
   handleAddressSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }) => {
   return (
-    <div className="p-4 bg-gray-50 rounded-md">
+    <div className="p-4 bg-gray-50">
       <form onSubmit={handleAddressSubmit} className="space-y-4">
         <h3 className="text-lg font-medium mb-4">Adresse de Livraison</h3>
         <input

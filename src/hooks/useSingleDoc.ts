@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 
 import { projectFirestore, projectStorage } from '../firebase-config'
 
-const useSingleDoc = (collectionName, id) => {
-  const [element, setElement] = useState(null)
+const useSingleDoc = (collectionName: string, id: string) => {
+  const [element, setElement] = useState<any>(null)
 
   useEffect(() => {
     let isSubscribed = true
@@ -15,16 +15,15 @@ const useSingleDoc = (collectionName, id) => {
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        const data = { ...docSnap.data(), id: docSnap.id }
+        const data = { ...docSnap.data(), id: docSnap.id, ref: docRef }
 
         // Get download URL for the main image
         if (data.main_image) {
           const mainImageRef = ref(projectStorage, data.main_image)
-          const mainImageUrl = await getDownloadURL(mainImageRef)
-          data.main_image = mainImageUrl
+          data.main_image = await getDownloadURL(mainImageRef)
         }
 
-        // Check if related_images exists and has elements
+        // Fetch URLs for related images
         if (data.related_images && data.related_images.length > 0) {
           const relatedImageUrls = await Promise.all(
             data.related_images.map(async (image) => {
@@ -34,8 +33,21 @@ const useSingleDoc = (collectionName, id) => {
           )
           data.related_images = relatedImageUrls
         } else {
-          // Handle the case where related_images is empty or null
-          data.related_images = [] // Set to empty array or handle accordingly
+          data.related_images = [] // Set to empty array if no related images
+        }
+
+        // Fetch URLs for color images
+        if (data.color_images && data.color_images.length > 0) {
+          const colorImageUrls = await Promise.all(
+            data.color_images.map(async (item) => {
+              const imageRef = ref(projectStorage, item.image)
+              const imageUrl = await getDownloadURL(imageRef)
+              return { ...item, image: imageUrl } // Return color with updated URL
+            })
+          )
+          data.color_images = colorImageUrls
+        } else {
+          data.color_images = [] // Set to empty array if no color images
         }
 
         if (isSubscribed) {
@@ -43,13 +55,16 @@ const useSingleDoc = (collectionName, id) => {
         }
       } else {
         console.log('No such document!')
+        if (isSubscribed) {
+          setElement(null)
+        }
       }
     }
 
     fetchData()
 
     return () => {
-      isSubscribed = false
+      isSubscribed = false // Cleanup to prevent setting state on unmounted component
     }
   }, [collectionName, id])
 

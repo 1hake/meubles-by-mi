@@ -6,11 +6,11 @@ const SignUpForm: React.FC = () => {
   const { signup, currentUser, error } = useAuth() // Use the signup method from AuthContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [displayName, setDisplayName] = useState('')
+  const [name, setName] = useState('')
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const result = await signup(email, password, displayName) // Pass displayName if your signup method supports it
+    const result = await signup(email, password, name) // Pass displayName if your signup method supports it
     if (result && !error) {
       console.log('Registration successful:', currentUser) // Optional: Handle what happens on successful registration
     }
@@ -22,15 +22,15 @@ const SignUpForm: React.FC = () => {
         <h2 className="text-2xl font-bold mb-4">Inscription</h2>
         {error && <div className="mb-4 text-red-500">{error}</div>}
         <div className="mb-4">
-          <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
             Nom d'utilisateur
           </label>
           <input
             type="text"
-            id="displayName"
-            name="displayName"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            id="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />

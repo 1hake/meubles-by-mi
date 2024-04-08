@@ -7,6 +7,7 @@ import ProductCategory from '../components/ProductCategory'
 import ProductDetail from '../components/ProductDetail'
 import SignInForm from '../components/Users/SignInForm'
 import SignUpForm from '../components/Users/SignupForm'
+import UserOrdersPage from '../components/Users/UserOrders'
 import { Home } from '../pages/Home'
 
 interface Route {
@@ -57,5 +58,10 @@ export const routesConfig: Route[] = [
     name: 'confirmation',
     path: '/confirmation',
     component: <ConfirmationPage />
+  },
+  {
+    name: 'user-profile',
+    path: '/profile',
+    component: <UserOrdersPage />
   }
 ]

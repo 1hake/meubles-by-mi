@@ -1,5 +1,4 @@
-import { DocumentData, addDoc, collection, getDocs, query, where } from 'firebase/firestore'
-// src/hooks/useUsers.js
+import { addDoc, collection, getDocs, query } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 
 import { projectFirestore } from '../firebase-config'
@@ -9,6 +8,7 @@ interface User {
   name: string
   email: string
   orders: string[] // Array of order IDs
+  ref?: any // Optional reference to the Firestore document
 }
 
 interface Order {
@@ -37,6 +37,7 @@ export const useUsers = () => {
         const querySnapshot = await getDocs(query(usersCollection))
         const fetchedUsers: User[] = querySnapshot.docs.map((doc) => ({
           userId: doc.id,
+          ref: doc.ref, // Add the document reference here
           ...(doc.data() as User)
         }))
         setUsers(fetchedUsers)
@@ -50,16 +51,20 @@ export const useUsers = () => {
     fetchUsers()
   }, [])
 
-  const addUser = async (userData: DocumentData) => {
+  const addUser = async (userData) => {
     setLoading(true)
     try {
       const docRef = await addDoc(collection(projectFirestore, 'users'), userData)
-      const newUser: User = { ...userData, userId: docRef.id }
-      setUsers((prev) => [...prev, newUser])
+      setLoading(false)
+      return {
+        ...userData,
+        userId: docRef.id,
+        ref: docRef // Return the document reference
+      }
     } catch (err) {
       setError('Error adding new user: ' + err.message)
-    } finally {
       setLoading(false)
+      return null
     }
   }
 

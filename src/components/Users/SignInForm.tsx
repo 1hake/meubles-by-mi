@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext' // Import the useAuth hook
 
 const SignInForm: React.FC = () => {
   const { login, currentUser, error } = useAuth() // Use login from AuthContext
-  console.log('🚀 ~ login:', login)
+  console.log('🚀 ~ login:', currentUser)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
