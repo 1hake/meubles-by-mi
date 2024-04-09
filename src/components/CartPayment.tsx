@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 
 import useCreatePaymentIntent from '../hooks/useCreatePaymentIntent'
 import { stripePromise } from '../router/Router'
+import { Loader } from './Loader'
 import PaymentForm from './PaymentForm'
 
 const CartPayment: React.FC = ({ orderInfo, totalPrice }) => {
@@ -13,7 +14,7 @@ const CartPayment: React.FC = ({ orderInfo, totalPrice }) => {
     createPaymentIntent(totalPrice, 'eur')
   }, [])
 
-  if (!clientSecret) return <p>Loading payment details...</p>
+  if (!clientSecret) return <Loader />
 
   return (
     <div className="container my-10 p-6 rounded-lg flex flex-col md:flex-row">

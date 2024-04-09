@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext' // Import the useAuth hook
 
@@ -7,12 +8,18 @@ const SignUpForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const navigate = useNavigate()
+  const params = useParams()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const result = await signup(email, password, name) // Pass displayName if your signup method supports it
     if (result && !error) {
-      console.log('Registration successful:', currentUser) // Optional: Handle what happens on successful registration
+      if (params.redirect) {
+        navigate('/cart')
+        return
+      }
+      navigate('/')
     }
   }
 

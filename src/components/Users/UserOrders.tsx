@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 
 import { useAuth } from '../../context/AuthContext'
 import useOrders from '../../hooks/useOrders'
+import { Loader } from '../Loader'
 
 interface Product {
   productId: string
@@ -30,10 +31,10 @@ const UserOrdersPage: React.FC = () => {
     if (currentUser && currentUser.uid) {
       fetchOrdersByUserId(currentUser.uid)
     }
-  }, []) // added currentUser and fetchOrdersByUserId as dependencies
+  }, [])
 
   if (loading) {
-    return <p className="text-center text-lg">Chargement en cours...</p>
+    return <Loader />
   }
 
   if (error) {
@@ -47,9 +48,6 @@ const UserOrdersPage: React.FC = () => {
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
               <th scope="col" className="py-3 px-6">
-                ID de commande
-              </th>
-              <th scope="col" className="py-3 px-6">
                 Date de commande
               </th>
               <th scope="col" className="py-3 px-6">
@@ -60,7 +58,6 @@ const UserOrdersPage: React.FC = () => {
           <tbody>
             {orders.map((order) => (
               <tr key={order.orderId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <td className="py-4 px-6">{order.orderId}</td>
                 <td className="py-4 px-6">{new Date(order.orderDate).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6">
                   {order.products.map((product) => (

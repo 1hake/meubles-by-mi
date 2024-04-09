@@ -46,12 +46,12 @@ export const routesConfig: Route[] = [
   },
   {
     name: 'signin',
-    path: '/signin',
+    path: '/signin/:redirect?',
     component: <SignInForm />
   },
   {
     name: 'signup',
-    path: '/signup',
+    path: '/signup/:redirect?',
     component: <SignUpForm />
   },
   {

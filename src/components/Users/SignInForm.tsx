@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom' // Assuming you're using react-router for navigation
+import { useNavigate, useParams } from 'react-router-dom' // Assuming you're using react-router for navigation
 
 import { useAuth } from '../../context/AuthContext' // Import the useAuth hook
 
@@ -9,12 +9,18 @@ const SignInForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const params = useParams()
+  console.log('🚀 ~ params:', params)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const result = await login(email, password) // Call login with email and password
     if (result && !error) {
       console.log('Login successful:', currentUser)
+      if (params.redirect) {
+        navigate('/cart')
+        return
+      }
       navigate('/') // Redirect to home page after successful login
     }
   }

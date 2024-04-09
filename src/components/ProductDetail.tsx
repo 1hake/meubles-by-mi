@@ -6,6 +6,7 @@ import Lightbox from 'yet-another-react-lightbox'
 
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
+import { Loader } from './Loader'
 import NumberInput from './NumberInput'
 import { SectionTitle } from './SectionTitle'
 
@@ -34,7 +35,7 @@ const ProductDetail = () => {
 
   const product = useSingleDoc<Product>('products', id)
   if (!product) {
-    return <p className="text-center text-lg">Loading...</p>
+    return <Loader />
   }
 
   const { name, price, description, color_images, main_image, related_images } = product
@@ -69,8 +70,8 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-8">
-      <SectionTitle className="text-3xl text-gray-800 font-bold mb-6">{name}</SectionTitle>
+    <div className="flex flex-col items-center justify-center py-12">
+      <SectionTitle className="text-sm lg:text-3xl text-gray-800 font-bold mb-6">{name}</SectionTitle>
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 items-start justify-items-center p-4 bg-white">
         <img
           src={selectedImage || main_image}
@@ -116,7 +117,7 @@ const ProductDetail = () => {
               </select>
             </div>
             <button
-              className="bg-blue-500 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 transition-colors duration-300 ease-in-out mt-4"
+              className="bg-black text-white font-medium px-6 py-3 rounded-lg shadow-md hover:bg-white hover:text-black transition-colors duration-300 ease-in-out mt-4"
               onClick={handleBuyClick}
             >
               Ajouter au panier

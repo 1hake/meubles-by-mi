@@ -13,7 +13,7 @@ function useCreatePaymentIntent() {
     try {
       // Update the URL to match your Firebase function's endpoint
       const response = await fetch(
-        `http://127.0.0.1:5001/meublesbymi/us-central1/createPaymentIntent?amount=${amount}&currency=${currency}`,
+        `https://createpaymentintent-k4ks6w6uwq-uc.a.run.app?amount=${amount}&currency=${currency}`,
         {
           method: 'GET',
           headers: {}
