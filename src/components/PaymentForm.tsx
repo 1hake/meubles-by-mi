@@ -28,7 +28,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret, orderInfo }) =>
       confirmParams: {},
       redirect: 'if_required'
     })
-    console.log('🚀 ~ handleSubmit ~ result:', result)
 
     if (result.error) {
       console.log(result.error.message)

@@ -40,11 +40,11 @@ const ProductDetail = () => {
 
   const { name, price, description, color_images, main_image, related_images } = product
 
-  const images = [main_image, ...related_images, ...color_images.map((ci) => ci.image)]
-
-  const handleImageClick = (image: string) => {
+  const handleImageClick = (image: string, color?: string) => {
     setSelectedImage(image)
-    setLightboxOpen(true)
+    if (color) {
+      setSelectedColor(color)
+    }
   }
 
   const handleQuantityChange = (value: number) => {
@@ -70,42 +70,50 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <SectionTitle className="text-sm lg:text-3xl text-gray-800 font-bold mb-6">{name}</SectionTitle>
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 items-start justify-items-center p-4 bg-white">
-        <img
-          src={selectedImage || main_image}
-          alt={name}
-          className="lg:col-span-2 w-full h-96 object-cover rounded-lg shadow-md cursor-pointer"
-          onClick={() => setLightboxOpen(true)}
-        />
-        <div className="lg:col-span-1 flex flex-row lg:flex-col overflow-auto md:overflow-x-auto lg:overflow-y-auto gap-3">
-          {images.map((img, index) => (
+    <div className="  bg-white text-black">
+      <SectionTitle className="text-2xl font-bold mb-6">{name}</SectionTitle>
+      <div className="w-full h-full grid md:grid-cols-3 lg:grid-cols-7 gap-12 p-4">
+        <div className="flex flex-col col-span-3 items-center">
+          <img
+            src={selectedImage || main_image}
+            alt={name}
+            className="w-full h-96 object-cover rounded-lg shadow-lg"
+            onClick={() => setLightboxOpen(true)}
+          />
+          <button
+            className="mt-4 bg-black text-white text-sm font-bold uppercase px-6 py-2 rounded shadow hover:bg-gray-900"
+            onClick={() => setLightboxOpen(true)}
+          >
+            Voir en grand format
+          </button>
+        </div>
+        <div className="lg:col-span-1 col-span-3 flex lg:flex-col gap-3 overflow-auto">
+          {color_images.map((ci, index) => (
             <img
               key={index}
-              src={img}
-              alt={`Related image ${index}`}
-              className="w-full md:w-auto lg:w-full h-14 object-cover rounded-lg shadow-sm cursor-pointer"
-              onClick={() => handleImageClick(img)}
+              src={ci.image}
+              alt={`Image of ${ci.color}`}
+              className="h-24 w-full object-cover rounded shadow cursor-pointer"
+              onClick={() => handleImageClick(ci.image, ci.color)}
             />
           ))}
         </div>
-        <div className="lg:col-span-2 w-full">
-          <p className="text-2xl font-bold ">{price.toFixed(2)} €</p>
-          <p className="text-sm text-gray-600 mb-4">{description}</p>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-700">Quantité:</label>
+        <div className="col-span-3 gap-2">
+          <p className="text-2xl font-bold">{price.toFixed(2)} €</p>
+          <p className="text-gray-700 mb-4">{description}</p>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Quantité:</label>
               <NumberInput
                 value={quantity}
                 onChange={handleQuantityChange}
-                className="border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                className="border-2 border-black rounded px-3 py-1 outline-none focus:border-gray-800"
               />
             </div>
-            <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-700">Couleur:</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Couleur:</label>
               <select
-                className="bg-white border border-gray-300 rounded-lg p-2 cursor-pointer shadow-sm focus:border-blue-500 focus:outline-none"
+                className="border-2 border-black rounded px-3 py-2 cursor-pointer shadow-sm focus:border-gray-800"
                 onChange={handleColorChange}
                 value={selectedColor}
               >
@@ -117,7 +125,7 @@ const ProductDetail = () => {
               </select>
             </div>
             <button
-              className="bg-black text-white font-medium px-6 py-3 rounded-lg shadow-md hover:bg-white hover:text-black transition-colors duration-300 ease-in-out mt-4"
+              className="bg-black text-white font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900"
               onClick={handleBuyClick}
             >
               Ajouter au panier
