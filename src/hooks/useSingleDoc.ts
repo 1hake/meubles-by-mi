@@ -12,6 +12,7 @@ const useSingleDoc = (collectionName: string, id: string) => {
 
     const fetchData = async () => {
       const docRef = doc(projectFirestore, collectionName, id)
+      console.log('🚀 ~ fetchData ~ docRef:', docRef)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {

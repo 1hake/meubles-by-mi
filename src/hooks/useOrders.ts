@@ -52,6 +52,7 @@ const useOrders = () => {
   }
 
   const addOrder = async (newOrder: Omit<Order, 'orderId'>) => {
+    console.log('🚀 ~ addOrder ~ newOrder:', newOrder)
     setLoading(true)
     setError(null)
     try {

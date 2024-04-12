@@ -16,7 +16,7 @@ const CartPayment: React.FC = ({ orderInfo, totalPrice }) => {
   if (!clientSecret) return <Loader />
 
   return (
-    <div className="container my-10 p-6 rounded-lg flex flex-col md:flex-row">
+    <div className="rounded-lg flex flex-col md:flex-row justify-center">
       <Elements stripe={stripePromise} options={{ clientSecret }}>
         <PaymentForm clientSecret={clientSecret} orderInfo={orderInfo} />
       </Elements>

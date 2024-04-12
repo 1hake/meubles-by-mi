@@ -29,7 +29,7 @@ interface Product {
   new: boolean
   ref: Object
   shippingOptions: {
-    Belgium: number | null
+    Belgique: number | null
     Luxembourg: number | null
     France: number | null
   }
@@ -44,6 +44,7 @@ const ProductDetail = () => {
   const { addItem } = useCartContext()
 
   const product = useSingleDoc<Product>('products', id)
+  console.log('🚀 ~ ProductDetail ~ product:', product)
 
   if (!product) {
     return <Loader />

@@ -7,12 +7,9 @@ import { useCartContext } from '../context/CartContext'
 
 emailjs.init({
   publicKey: 'DsyslrqbT-Wcnl4Oe',
-  // Do not allow headless browsers
   blockHeadless: true,
   limitRate: {
-    // Set the limit rate for the application
     id: 'app',
-    // Allow 1 request per 10s
     throttle: 10000
   }
 })
@@ -29,7 +26,6 @@ export const ConfirmationPage = () => {
   }, [cart])
 
   const backToHome = () => {
-    // Clear the cart
     localStorage.removeItem('cart')
     navigate('/')
   }
@@ -56,15 +52,12 @@ export const ConfirmationPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 mt-10 mb-20 max-w-4xl bg-white shadow-lg rounded-lg">
+    <div className="container mx-auto p-6 mt-10 mb-20 max-w-4xl bg-white shadow-lg rounded-lg border-2 border-black">
       <h1 className="text-3xl font-bold mb-8 text-center">Merci pour votre achat !</h1>
       <div className="p-6 rounded-lg">
         <h2 className="text-2xl font-semibold mb-6">Récapitulatif de votre commande</h2>
         {cart.map((item, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center mb-4 p-4 border-b border-gray-300 last:border-b-0"
-          >
+          <div key={index} className="flex justify-between items-center mb-4 p-4 border-2 border-black rounded-md">
             <div className="flex items-center">
               <img src={item.image} alt={item.name} className="h-16 w-16 rounded-full object-cover mr-4" />
               <div>

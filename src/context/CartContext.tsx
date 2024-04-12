@@ -24,6 +24,7 @@ const CartProvider = ({ children }) => {
   }, [cart])
 
   const addItem = (newItem) => {
+    console.log('🚀 ~ addItem ~ newItem:', newItem)
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex((item) => item.id === newItem.id)
       if (existingItemIndex !== -1) {

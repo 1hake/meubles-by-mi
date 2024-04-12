@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
 import { auth, projectFirestore } from '../firebase-config'
@@ -17,19 +17,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userRef = doc(projectFirestore, 'users', user.uid)
-        const userDoc = await getDoc(userRef)
-        if (userDoc.exists()) {
-          setCurrentUser({
-            uid: user.uid,
-            ...userDoc.data()
-          })
-        } else {
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email
-          })
-        }
+        const q = query(collection(projectFirestore, 'users'), where('id', '==', user.uid))
+
+        const querySnapshot = await getDocs(q)
+        const userData = querySnapshot.forEach((doc) => {
+          setCurrentUser({ ...doc.data() })
+        })
       } else {
         setCurrentUser(null)
       }
