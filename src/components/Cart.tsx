@@ -27,7 +27,6 @@ export const Cart: React.FC<CartProps> = () => {
   })
   const [selectedCountry, setSelectedCountry] = useState<string>('France')
   const { currentUser } = useAuth()
-  console.log('🚀 ~ currentUser:', currentUser)
 
   const [addressCompleted, setAddressCompleted] = useState(false)
   const [shippingError, setShippingError] = useState('')

@@ -1,9 +1,36 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-const CartContext = createContext()
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  ref: {
+    converter: any
+    _key: {
+      path: {
+        segments: string[]
+        offset: number
+        len: number
+      }
+    }
+    type: string
+    firestore: any
+  }
+}
 
-const CartProvider = ({ children }) => {
-  const getInitialCart = () => {
+interface CartContextType {
+  cart: CartItem[]
+  addItem: (newItem: CartItem) => void
+  updateItemQuantity: (itemId: string, newQuantity: number) => void
+  removeItem: (itemId: string) => void
+  calculateTotal: () => number
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined)
+
+const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const getInitialCart = (): CartItem[] => {
     try {
       const storedCart = localStorage.getItem('cart')
       return storedCart ? JSON.parse(storedCart) : []
@@ -13,7 +40,7 @@ const CartProvider = ({ children }) => {
     }
   }
 
-  const [cart, setCart] = useState(getInitialCart)
+  const [cart, setCart] = useState<CartItem[]>(getInitialCart)
 
   useEffect(() => {
     try {
@@ -23,38 +50,36 @@ const CartProvider = ({ children }) => {
     }
   }, [cart])
 
-  const addItem = (newItem) => {
-    console.log('🚀 ~ addItem ~ newItem:', newItem)
+  const addItem = (newItem: CartItem) => {
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex((item) => item.id === newItem.id)
       if (existingItemIndex !== -1) {
-        // Update quantity immutably by adding the newItem's quantity to the existing item's quantity
+        // Update quantity and ensure ref is updated if necessary
         const updatedCart = [...prevCart]
         updatedCart[existingItemIndex] = {
           ...prevCart[existingItemIndex],
-          quantity: prevCart[existingItemIndex].quantity + newItem.quantity
+          quantity: prevCart[existingItemIndex].quantity + newItem.quantity,
+          ref: newItem.ref // Make sure to update the ref if new data has a different ref
         }
         return updatedCart
       } else {
-        // Item does not exist, add the new one with its quantity
-        // Ensure newItem has a default quantity if not provided
-        const itemToAdd = { ...newItem, quantity: newItem.quantity || 1 }
-        return [...prevCart, itemToAdd]
+        // Item does not exist, add the new one
+        return [...prevCart, newItem]
       }
     })
   }
 
-  const updateItemQuantity = (itemId, newQuantity) => {
+  const updateItemQuantity = (itemId: string, newQuantity: number) => {
     setCart((prevCart) =>
       prevCart.map((cartItem) => (cartItem.id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem))
     )
   }
 
-  const removeItem = (itemId) => {
+  const removeItem = (itemId: string) => {
     setCart((prevCart) => prevCart.filter((cartItem) => cartItem.id !== itemId))
   }
 
-  const calculateTotal = () => {
+  const calculateTotal = (): number => {
     return cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
   }
 
@@ -65,7 +90,7 @@ const CartProvider = ({ children }) => {
 
 export default CartProvider
 
-export const useCartContext = () => {
+export const useCartContext = (): CartContextType => {
   const context = useContext(CartContext)
   if (context === undefined) {
     throw new Error('useCartContext must be used within a CartProvider')
