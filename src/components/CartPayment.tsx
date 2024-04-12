@@ -7,7 +7,6 @@ import { Loader } from './Loader'
 import PaymentForm from './PaymentForm'
 
 const CartPayment: React.FC = ({ orderInfo, totalPrice }) => {
-  console.log('🚀 ~ orderInfo:', orderInfo)
   const { createPaymentIntent, clientSecret } = useCreatePaymentIntent()
 
   useEffect(() => {

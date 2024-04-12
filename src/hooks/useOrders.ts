@@ -82,7 +82,6 @@ const useOrders = () => {
         orderId: doc.id,
         ...(doc.data() as Order)
       }))
-      console.log('🚀 ~ userOrders ~ userOrders:', userOrders)
 
       setOrders(userOrders)
     } catch (err) {

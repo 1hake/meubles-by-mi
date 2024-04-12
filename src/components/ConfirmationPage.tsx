@@ -44,7 +44,6 @@ export const ConfirmationPage = () => {
       })),
       total_price: cart.reduce((total, current) => total + current.price * current.quantity, 0).toFixed(2)
     }
-    console.log('🚀 ~ sendConfirmationEmail ~ templateParams:', templateParams)
 
     emailjs
       .send('service_65xlyy8', 'order_confirmation', templateParams)

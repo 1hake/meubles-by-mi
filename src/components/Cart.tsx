@@ -24,6 +24,7 @@ const shippingRates: Record<string, number> = {
 
 export const Cart: React.FC<CartProps> = () => {
   const { cart, removeItem, calculateTotal } = useCartContext()
+
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
     address: '',
@@ -33,15 +34,12 @@ export const Cart: React.FC<CartProps> = () => {
   })
   const [selectedCountry, setSelectedCountry] = useState<string>('France')
   const { currentUser } = useAuth()
+  console.log('🚀 ~ currentUser:', currentUser)
 
   const addressCompleted = Object.values(shippingAddress).every((value) => value !== '')
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
-  }
-
-  const handleAddressSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
   }
 
   const shippingFee = useMemo(() => shippingRates[selectedCountry], [selectedCountry])
@@ -113,11 +111,7 @@ export const Cart: React.FC<CartProps> = () => {
           (addressCompleted ? (
             <CartPayment totalPrice={totalPrice} orderInfo={orderInfo} />
           ) : (
-            <ShippingAdressForm
-              shippingAddress={shippingAddress}
-              handleAddressChange={handleAddressChange}
-              handleAddressSubmit={handleAddressSubmit}
-            />
+            <ShippingAdressForm shippingAddress={shippingAddress} handleAddressChange={handleAddressChange} />
           ))}
       </div>
     </div>

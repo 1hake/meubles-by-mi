@@ -8,6 +8,7 @@ import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
 import { Loader } from './Loader'
 import NumberInput from './NumberInput'
+import ShippingOptionsComponent from './products/ShippingOptionsComponent'
 import { SectionTitle } from './SectionTitle'
 
 interface ColorImage {
@@ -16,13 +17,22 @@ interface ColorImage {
 }
 
 interface Product {
-  id: string
   name: string
-  price: number
-  description: string
-  color_images: ColorImage[]
   main_image: string
   related_images: string[]
+  color_images: any[]
+  categories: string[]
+  description: string
+  price: number
+  published: boolean
+  promotion: boolean
+  new: boolean
+  ref: Object
+  shippingOptions: {
+    Belgium: number | null
+    Luxembourg: number | null
+    France: number | null
+  }
 }
 
 const ProductDetail = () => {
@@ -34,6 +44,7 @@ const ProductDetail = () => {
   const { addItem } = useCartContext()
 
   const product = useSingleDoc<Product>('products', id)
+
   if (!product) {
     return <Loader />
   }
@@ -59,7 +70,8 @@ const ProductDetail = () => {
       color: selectedColor || 'Default',
       quantity,
       image: selectedImage || main_image,
-      ref: product.ref
+      ref: product.ref,
+      shippingOptions: product.shippingOptions
     })
   }
 
@@ -101,6 +113,7 @@ const ProductDetail = () => {
         <div className="col-span-3 gap-2">
           <p className="text-2xl font-bold">{price.toFixed(2)} €</p>
           <p className="text-gray-700 mb-4">{description}</p>
+          <ShippingOptionsComponent shippingOptions={product.shippingOptions} />
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Quantité:</label>

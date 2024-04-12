@@ -27,7 +27,6 @@ interface FirebaseElement {
 export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
   const { category } = useParams()
   const [images, setImages] = useState<FirebaseElement[]>([])
-  console.log('🚀 ~ images:', images)
   const [index, setIndex] = useState<number>(-1)
   const elements: FirebaseElement[] = useCategories('products', false, category)
 

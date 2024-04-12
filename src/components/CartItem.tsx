@@ -7,7 +7,12 @@ interface CartItemProps {
     image: string
     price: number
     quantity: number
-    color?: string // Optional color property
+    color?: string
+    shippingOptions: {
+      Belgium: number | null
+      Luxembourg: number | null
+      France: number | null
+    }
   }
   onRemove: (id: string) => void
 }
