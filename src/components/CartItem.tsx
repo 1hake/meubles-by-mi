@@ -1,67 +1,75 @@
 import React from 'react'
 
+interface PriceRow {
+  quantity: string
+  price: string
+}
+
+interface Variant {
+  color: string
+  image: string
+  quantity: number
+}
+
 interface CartItemProps {
   item: {
     id: string
     name: string
-    image: string
-    price: number
-    quantity: number
-    color?: string
+    variants: Variant[]
     shippingOptions: {
       Belgique?: number | null
       Luxembourg?: number | null
       France?: number | null
     }
+    priceOption: PriceRow[]
   }
   onRemove: (id: string) => void
   selectedCountry: 'Belgique' | 'Luxembourg' | 'France'
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item, onRemove, selectedCountry }) => {
-  const { id, name, image, price, quantity, color, shippingOptions } = item
+  const { id, name, variants, shippingOptions, priceOption } = item
 
-  const shippingCost = shippingOptions[selectedCountry]
-  const isShippable = shippingCost !== undefined && shippingCost !== null
+  const shippingCost = shippingOptions[selectedCountry] ?? 10 // Default shipping cost
+  const totalQuantity = variants.reduce((sum, variant) => sum + variant.quantity, 0)
+  const totalPrice = priceOption.reduce((acc, option) => {
+    if (parseInt(option.quantity) <= totalQuantity) {
+      return parseFloat(option.price) * totalQuantity // Calculate price based on the matched tier
+    }
+    return acc
+  }, 0)
+
+  const savings = parseFloat(priceOption[0].price) * totalQuantity - totalPrice // Calculate savings
 
   return (
-    <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">
-      <button
-        onClick={() => onRemove(id)}
-        className="absolute top-1 right-1 p-1 text-red-500 hover:text-red-700"
-        aria-label="Close"
-        style={{ outline: 'none' }} // Ensures that there is no focus outline that could disrupt the aesthetic
-      >
+    <div className="relative bg-white p-4 rounded-lg border border-gray-200 mb-4 shadow-sm">
+      <button onClick={() => onRemove(id)} className="absolute top-1 right-1 p-1 text-red-500 hover:text-red-700">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-4 h-4" // Smaller icon size for a more refined look
+          className="w-4 h-4"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <div className="flex flex-col md:flex-row items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <img src={image} alt={name} className="h-20 w-20 rounded-full object-cover" />
-          <div className="flex flex-col">
-            <div className="text-lg font-medium text-gray-800">{name}</div>
-            {color && <div className="text-sm text-gray-500">Couleur : {color}</div>}
-            <div className="text-sm text-gray-500">Quantité : {quantity}</div>
+      <div className="flex flex-col space-y-2">
+        <h3 className="text-lg font-bold text-gray-800">{name}</h3>
+        {variants.map((variant, index) => (
+          <div key={index} className="flex justify-between items-center p-2">
+            <div className="flex items-center space-x-3">
+              <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
+              <div>
+                <p className="text-sm text-gray-500">{`Couleur : ${variant.color}`}</p>
+                <p className="text-sm text-gray-500">{`Quantité : ${variant.quantity}`}</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <div className="text-lg font-semibold text-gray-900">{(price * quantity).toFixed(2)} €</div>
-          {isShippable ? (
-            <span className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm">
-              Livraison : {shippingCost} €
-            </span>
-          ) : (
-            <span className="inline-block bg-red-500 text-white px-3 py-1 rounded-full text-sm">Pas livrable</span>
-          )}
-        </div>
+        ))}
+        <p className="text-right text-xl font-semibold">{`Prix Total : ${totalPrice.toFixed(2)} €`}</p>
+        {savings > 0 && <p className="text-right text-green-500">{`Économies réalisées : ${savings.toFixed(2)} €`}</p>}
       </div>
     </div>
   )

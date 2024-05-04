@@ -5,7 +5,7 @@ import { useCartContext } from '../context/CartContext'
 import CartItem from './CartItem'
 import CartPayment from './CartPayment'
 import EmptyCart from './EmptyCart'
-import { ShippingAdressForm } from './ShippingAdressForm'
+import { ShippingAddressForm } from './ShippingAddressForm'
 
 export interface ShippingAddress {
   fullName: string
@@ -16,7 +16,7 @@ export interface ShippingAddress {
 
 interface CartProps {}
 
-export const Cart: React.FC<CartProps> = () => {
+const Cart: React.FC<CartProps> = () => {
   const { cart, removeItem, calculateTotal } = useCartContext()
   console.log('🚀 ~ cart:', cart)
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -37,26 +37,14 @@ export const Cart: React.FC<CartProps> = () => {
     )
   }, [cart, selectedCountry])
 
-  const fillAddressWithUser = () => {
-    if (currentUser) {
-      setShippingAddress({
-        fullName: currentUser.fullName,
-        address: currentUser.address,
-        city: currentUser.city,
-        postalCode: currentUser.postalCode
-      })
-    }
-    setSelectedCountry(currentUser?.country)
-  }
-
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
   }
 
   const shippingFee = useMemo(() => {
     return cart.reduce((total, item) => {
-      const itemShipping = item.shippingOptions[selectedCountry] ?? 0
-      return total + itemShipping // Default shipping fee is 10 if not specified
+      const itemShipping = item.shippingOptions[selectedCountry] ?? 10 // Default shipping fee is 10 if not specified
+      return total + itemShipping
     }, 0)
   }, [cart, selectedCountry])
 
@@ -64,7 +52,7 @@ export const Cart: React.FC<CartProps> = () => {
     setSelectedCountry(e.target.value)
   }
 
-  const handleAdressSubmit = () => {
+  const handleAddressSubmit = () => {
     if (!allItemsShippable) {
       setShippingError(
         'Un ou plusieurs articles dans votre panier ne peuvent pas être livrés dans votre pays sélectionné.'
@@ -125,7 +113,7 @@ export const Cart: React.FC<CartProps> = () => {
               ))}
             </select>
             {!allItemsShippable && (
-              <p className="text-red-600 font-semibold mt-2 mb-2">Livraison: Non disponible dans votre pays</p>
+              <p className="text-red-600 font-semibold mt-2">Livraison: Non disponible dans votre pays</p>
             )}
             <p className="mt-4 mb-4 text-xl font-semibold">Prix Total: {totalPrice.toFixed(2)}€</p>
           </div>
@@ -151,9 +139,16 @@ export const Cart: React.FC<CartProps> = () => {
         ) : addressCompleted ? (
           <CartPayment totalPrice={totalPrice} orderInfo={orderInfo} />
         ) : (
-          <ShippingAdressForm
-            fillAddressWithUser={fillAddressWithUser}
-            handleAdressSubmit={handleAdressSubmit}
+          <ShippingAddressForm
+            fillAddressWithUser={() =>
+              setShippingAddress({
+                fullName: currentUser.fullName,
+                address: currentUser.address,
+                city: currentUser.city,
+                postalCode: currentUser.postalCode
+              })
+            }
+            handleAddressSubmit={handleAddressSubmit}
             shippingAddress={shippingAddress}
             handleAddressChange={handleAddressChange}
           />
@@ -162,3 +157,5 @@ export const Cart: React.FC<CartProps> = () => {
     </div>
   )
 }
+
+export default Cart

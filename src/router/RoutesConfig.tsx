@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Cart } from '../components/Cart'
+import Cart from '../components/Cart'
 import { ConfirmationPage } from '../components/ConfirmationPage'
 import { Footer } from '../components/Footer'
 import ProductCategory from '../components/ProductCategory'

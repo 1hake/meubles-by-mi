@@ -1,96 +1,113 @@
 import 'yet-another-react-lightbox/styles.css'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Lightbox from 'yet-another-react-lightbox'
 
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
 import { Loader } from './Loader'
-import NumberInput from './NumberInput'
-import ShippingOptionsComponent from './products/ShippingOptionsComponent'
+import PriceDisplay from './PriceDisplay'
+import { PriceOptionModal } from './PriceOptionModal'
 import { SectionTitle } from './SectionTitle'
 
-interface ColorImage {
-  color: string
-  image: string
+export interface PriceRow {
+  quantity: string
+  price: string
 }
 
 interface Product {
+  id: string
   name: string
   main_image: string
   related_images: string[]
-  color_images: any[]
+  color_images: ColorImage[]
   categories: string[]
   description: string
-  price: number
+  priceOptions: PriceRow[]
   published: boolean
   promotion: boolean
   new: boolean
-  ref: Object
+  facebookProductUrl: string
   shippingOptions: {
     Belgique: number | null
     Luxembourg: number | null
     France: number | null
   }
+  ref: any
+}
+
+interface ColorImage {
+  color: string
+  image: string
+  quantity: number
 }
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>()
   const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string>('')
-  const [selectedColor, setSelectedColor] = useState<string>('')
-  const [quantity, setQuantity] = useState<number>(1)
-  const { addItem } = useCartContext()
+  const [batchItems, setBatchItems] = useState<ColorImage[]>([])
+  const [openModal, setOpenModal] = useState(false)
 
+  const { addBatch } = useCartContext()
   const product = useSingleDoc<Product>('products', id)
-  console.log('🚀 ~ ProductDetail ~ product:', product)
+
+  useEffect(() => {
+    if (product && product.color_images) {
+      setBatchItems(product.color_images.map((ci) => ({ ...ci, quantity: 0 })))
+    }
+  }, [product])
 
   if (!product) {
     return <Loader />
   }
 
-  const { name, price, description, color_images, main_image, related_images } = product
-
-  const handleImageClick = (image: string, color?: string) => {
-    setSelectedImage(image)
-    if (color) {
-      setSelectedColor(color)
-    }
+  const handleColorQuantityChange = (color: string, quantity: number) => {
+    setBatchItems(batchItems.map((item) => (item.color === color ? { ...item, quantity } : item)))
   }
 
-  const handleQuantityChange = (value: number) => {
-    setQuantity(value)
+  const calculateTotalPrice = () => {
+    const totalQuantity = batchItems.reduce((acc, item) => acc + item.quantity, 0)
+    const priceOption = product.priceOptions.find((p) => parseInt(p.quantity) === totalQuantity)
+    return priceOption ? parseFloat(priceOption.price) : 0
   }
 
   const handleBuyClick = () => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      color: selectedColor || 'Default',
-      quantity,
-      image: selectedImage || main_image,
-      ref: product.ref,
-      shippingOptions: product.shippingOptions
-    })
+    const totalPrice = calculateTotalPrice()
+    if (totalPrice !== null) {
+      const itemToAdd = {
+        id: product.id,
+        name: product.name,
+        variants: batchItems
+          .filter((item) => item.quantity > 0)
+          .map((item) => ({
+            color: item.color,
+            image: item.image,
+            quantity: item.quantity
+          })),
+        ref: product.ref,
+        priceOption: product.priceOptions,
+        shippingOptions: product.shippingOptions
+      }
+      addBatch([itemToAdd])
+      setBatchItems(batchItems.map((item) => ({ ...item, quantity: 0 }))) // Reset quantities after adding to cart
+    }
   }
 
-  const handleColorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedColorImage = color_images.find((ci) => ci.color === event.target.value)
-    setSelectedColor(event.target.value)
-    setSelectedImage(selectedColorImage ? selectedColorImage.image : main_image)
-  }
+  const totalPrice = calculateTotalPrice()
+  const standardPrice =
+    parseFloat(product.priceOptions[0].price) * batchItems.reduce((acc, item) => acc + item.quantity, 0)
+  const savings = standardPrice - totalPrice
 
   return (
-    <div className="  bg-white text-black">
-      <SectionTitle className="text-2xl font-bold mb-6">{name}</SectionTitle>
-      <div className="w-full h-full grid md:grid-cols-3 lg:grid-cols-7 gap-12 p-4">
+    <div className="bg-white text-black relative pb-20">
+      <SectionTitle>{product.name}</SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 p-4">
         <div className="flex flex-col col-span-3 items-center">
           <img
-            src={selectedImage || main_image}
-            alt={name}
-            className="w-full h-96 object-cover rounded-lg shadow-lg"
+            src={product.main_image}
+            alt={product.name}
+            className="max-w-full h-auto object-cover rounded-lg shadow-md"
             onClick={() => setLightboxOpen(true)}
           />
           <button
@@ -100,62 +117,53 @@ const ProductDetail = () => {
             Voir en grand format
           </button>
         </div>
-        <div className="lg:col-span-1 col-span-3 flex lg:flex-col gap-3 overflow-auto">
-          {color_images.map((ci, index) => (
-            <img
-              key={index}
-              src={ci.image}
-              alt={`Image of ${ci.color}`}
-              className="h-24 w-full object-cover rounded shadow cursor-pointer"
-              onClick={() => handleImageClick(ci.image, ci.color)}
-            />
-          ))}
-        </div>
-        <div className="col-span-3 gap-2">
-          <p className="text-2xl font-bold">{price.toFixed(2)} €</p>
-          <p className="text-gray-700 mb-4">{description}</p>
-          <ShippingOptionsComponent shippingOptions={product.shippingOptions} />
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Quantité:</label>
-              <NumberInput
-                value={quantity}
-                onChange={handleQuantityChange}
-                className="border-2 border-black rounded px-3 py-1 outline-none focus:border-gray-800"
+        <div className="col-span-1 lg:col-span-4 md:col-span-2">
+          <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded">
+            <h2 className="text-2xl font-bold">Prix initial : {product.priceOptions[0].price} €</h2>
+            <button
+              className="bg-white text-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
+              onClick={() => setOpenModal(true)}
+            >
+              Voir les options de prix
+            </button>
+            <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
+          </div>
+          {batchItems.map((item, index) => (
+            <div key={index} className="flex flex-row items-center justify-between mb-4 p-2 bg-gray-100 rounded">
+              <div className="flex items-center gap-2">
+                <img src={item.image} alt={`Image of ${item.color}`} className="h-16 w-16 rounded-full shadow" />
+                <span className="font-semibold">{item.color}</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                className="w-16 p-2 border rounded text-center"
+                value={item.quantity}
+                onChange={(e) => handleColorQuantityChange(item.color, parseInt(e.target.value))}
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Couleur:</label>
-              <select
-                className="border-2 border-black rounded px-3 py-2 cursor-pointer shadow-sm focus:border-gray-800"
-                onChange={handleColorChange}
-                value={selectedColor}
-              >
-                {color_images.map((ci, index) => (
-                  <option key={index} value={ci.color}>
-                    {ci.color}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              className="bg-black text-white font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900"
-              onClick={handleBuyClick}
-            >
-              Ajouter au panier
-            </button>
-          </div>
+          ))}
+          <p className="text-gray-700 mb-4">{product.description}</p>
         </div>
-        <Lightbox
-          open={lightboxOpen}
-          close={() => setLightboxOpen(false)}
-          slides={[
-            { src: selectedImage || main_image },
-            ...related_images.map((ri) => ({ src: ri })),
-            ...color_images.map((ci) => ({ src: ci.image }))
-          ]}
-        />
       </div>
+      <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between items-center shadow-lg z-50 mt-4">
+        <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} savings={savings} />
+        <button
+          className="bg-white text-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-300"
+          onClick={handleBuyClick}
+        >
+          Ajouter le lot au panier
+        </button>
+      </div>
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={[
+          { src: product.main_image },
+          ...product.related_images.map((ri) => ({ src: ri })),
+          ...product.color_images.map((ci) => ({ src: ci.image }))
+        ]}
+      />
     </div>
   )
 }
