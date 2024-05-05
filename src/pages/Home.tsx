@@ -2,19 +2,14 @@ import '../hooks/init'
 
 import React from 'react'
 
-import { ProductsShowCase } from '../components/ProductsShowCase'
-import { Services } from '../components/Services'
+import { Categories } from '../components/categories/Categories'
+import ProductsShowCase from '../components/categories/ProductsShowCase'
 
 export const Home = () => {
   return (
     <>
-      {/* <Showcase limit={true} /> */}
-      <Services />
-      {/* <ShowcaseIntro></ShowcaseIntro> */}
+      <Categories />
       <ProductsShowCase limit={true} />
-      {/* <Works /> */}
-      {/* <ImagePanel /> */}
-      {/* <About /> */}
     </>
   )
 }

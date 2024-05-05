@@ -1,17 +1,19 @@
 import React from 'react'
 
-import { ShippingAddress } from './Cart'
+import { ShippingAddress } from '../types/types'
 
 export const ShippingAddressForm = ({
   shippingAddress,
   handleAddressChange,
   handleAddressSubmit,
-  fillAddressWithUser
+  fillAddressWithUser,
+  shippingError
 }: {
   shippingAddress: ShippingAddress
   handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleAddressSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   fillAddressWithUser: () => void
+  shippingError: string
 }) => {
   return (
     <div className="p-4 bg-gray-50">

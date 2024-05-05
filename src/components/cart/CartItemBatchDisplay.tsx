@@ -1,36 +1,17 @@
 import React from 'react'
 
-import { calculateStandardPrice, calculateTotalPrice } from './priceCalcutaions/prices'
-import PriceDisplay from './PriceDisplay'
-
-interface PriceRow {
-  quantity: string
-  price: string
-}
-
-interface Variant {
-  color: string
-  image: string
-  quantity: number
-}
+import { useCartContext } from '../../context/CartContext'
+import { calculateStandardPrice, calculateTotalPrice } from '../../utils/prices'
+import { CartItem } from '../types/types'
+import PriceDisplay from './price/PriceDisplay'
 
 interface CartItemProps {
-  item: {
-    id: string
-    name: string
-    variants: Variant[]
-    shippingOptions: {
-      Belgique?: number | null
-      Luxembourg?: number | null
-      France?: number | null
-    }
-    priceOption: PriceRow[]
-  }
+  item: CartItem
   onRemove: (id: string) => void
-  selectedCountry: 'Belgique' | 'Luxembourg' | 'France'
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onRemove, selectedCountry }) => {
+const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
+  const { selectedCountry } = useCartContext()
   const { id, name, variants, shippingOptions, priceOption } = item
 
   const shippingCost = shippingOptions[selectedCountry] ?? 10 // Default shipping cost
@@ -67,4 +48,4 @@ const CartItem: React.FC<CartItemProps> = ({ item, onRemove, selectedCountry }) 
   )
 }
 
-export default CartItem
+export default CartItemBatchDisplay

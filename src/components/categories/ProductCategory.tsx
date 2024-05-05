@@ -1,39 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { categories } from '../data/categories'
-import useCategories from '../hooks/useCategorie'
-import { getDownloadUrl } from '../utils/firebaseUtils'
-import { Loader } from './Loader'
-import { MyDialog } from './Panel'
-import ProductCard from './ProductCard'
-import { SectionTitle } from './SectionTitle'
+import { categories } from '../../data/categories'
+import useCategories from '../../hooks/useCategorie'
+import { getDownloadUrl } from '../../utils/firebaseUtils'
+import { Loader } from '../common/Loader'
+import { SectionTitle } from '../common/SectionTitle'
+import ProductCard from '../products/ProductCard'
+import { Product } from '../types/types'
 
 export interface ProductCategoryProps {
   limit: boolean
 }
 
-interface FirebaseElement {
-  url: string
-  width: number
-  height: number
-  images: string[]
-  description: string
-  name: string
-  related_images: string[]
-  gif: string
-}
-
 export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
   const { category } = useParams()
-  const [images, setImages] = useState<FirebaseElement[]>([])
+  const [images, setImages] = useState<Product[]>([])
   const [index, setIndex] = useState<number>(-1)
-  const elements: FirebaseElement[] = useCategories('products', false, category)
+  const elements: Product[] = useCategories('products', false, category)
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    const promises = elements.map((element: FirebaseElement) => {
+    const promises = elements.map((element: Product) => {
       return getDownloadUrl(element.main_image)
     })
     Promise.all(promises).then((urls) => {
@@ -41,13 +30,10 @@ export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
         return {
           src: url,
           id: elements[index].id,
-          width: elements[index].width,
-          height: elements[index].height,
           name: elements[index].name,
           description: elements[index].description,
           related_images: elements[index].related_images,
-          gif: elements[index].gif,
-          price: elements[index].price,
+          price: elements[index].priceOptions[0].price,
           promotion: elements[index].promotion,
           new: elements[index].new
         }
@@ -78,7 +64,6 @@ export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
           <Loader />
         )}
       </main>
-      <MyDialog isOpen={index > 0} currentPhoto={images[index - 1]} onClose={() => setIndex(-1)} />
     </>
   )
 }

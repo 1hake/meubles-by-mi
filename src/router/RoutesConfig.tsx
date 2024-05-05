@@ -1,14 +1,15 @@
 import React from 'react'
 
-import Cart from '../components/Cart'
-import { ConfirmationPage } from '../components/ConfirmationPage'
-import { Footer } from '../components/Footer'
-import ProductCategory from '../components/ProductCategory'
-import ProductDetail from '../components/ProductDetail'
-import SignInForm from '../components/Users/SignInForm'
-import SignUpForm from '../components/Users/SignUpForm'
-import UserOrdersPage from '../components/Users/UserOrders'
+import Admin from '../admin/Admin'
+import ProductCategory from '../components/categories/ProductCategory'
+import SignInForm from '../components/users/SignInForm'
+import SignUpForm from '../components/users/SignUpForm'
+import UserOrdersPage from '../components/users/UserOrders'
+import Cart from '../pages/Cart'
+import { ConfirmationPage } from '../pages/ConfirmationPage'
+import { Contact } from '../pages/Contact'
 import { Home } from '../pages/Home'
+import ProductDetail from '../pages/ProductDetail'
 
 interface Route {
   name: string
@@ -42,7 +43,7 @@ export const routesConfig: Route[] = [
   {
     name: 'contact',
     path: '/contact',
-    component: <Footer />
+    component: <Contact />
   },
   {
     name: 'signin',
@@ -63,5 +64,10 @@ export const routesConfig: Route[] = [
     name: 'user-profile',
     path: '/profile',
     component: <UserOrdersPage />
+  },
+  {
+    name: 'admin',
+    path: '/admin',
+    component: <Admin />
   }
 ]

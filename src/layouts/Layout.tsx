@@ -1,8 +1,8 @@
 import React from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 
-import { HeaderBar } from '../components/HeaderBar' // Import your modified HeaderBar component
 import { HeroSection } from '../components/HeroSection'
+import { HeaderBar } from '../components/menu/HeaderBar' // Import your modified HeaderBar component
 
 export const Layout = ({ children }) => {
   const location = useLocation()

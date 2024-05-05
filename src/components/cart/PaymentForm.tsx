@@ -2,7 +2,7 @@ import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import useOrders from '../hooks/useOrders'
+import useOrders from '../../hooks/useOrders'
 
 interface PaymentFormProps {
   clientSecret: string
@@ -33,7 +33,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret, orderInfo }) =>
       console.log(result.error.message)
     } else {
       console.log('Payment successful:', result.paymentIntent, orderInfo)
-      await addOrder({ ...orderInfo, orderDate: new Date() })
+      await addOrder({ ...orderInfo, orderDate: new Date(), status: 'en attente' })
       navigate('/confirmation')
     }
   }

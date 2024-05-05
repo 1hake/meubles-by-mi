@@ -4,15 +4,15 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Lightbox from 'yet-another-react-lightbox'
 
+import PriceDisplay from '../components/cart/price/PriceDisplay'
+import { PriceOptionModal } from '../components/cart/price/PriceOptionModal'
+import { NumberInput } from '../components/common/inputs/NumberInput'
+import { Loader } from '../components/common/Loader'
+import { SectionTitle } from '../components/common/SectionTitle'
+import { ColorImage, Product } from '../components/types/types'
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
-import { Loader } from './Loader'
-import { NumberInput } from './NumberInput'
-import { calculateStandardPrice, calculateTotalPrice } from './priceCalcutaions/prices'
-import PriceDisplay from './PriceDisplay'
-import { PriceOptionModal } from './PriceOptionModal'
-import { SectionTitle } from './SectionTitle'
-import { ColorImage, Product } from './types/types'
+import { calculateStandardPrice, calculateTotalPrice } from '../utils/prices'
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()

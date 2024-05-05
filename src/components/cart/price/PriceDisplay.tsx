@@ -14,7 +14,9 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({ totalPrice, standardPrice, 
         {totalPrice ? (
           <>
             <span className="text-2xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
-            <span className="text-lg line-through whitespace-nowrap  text-red-500">{standardPrice.toFixed(2)} €</span>
+            {standardPrice !== totalPrice && (
+              <span className="text-sm line-through text-gray-500">{standardPrice.toFixed(2)} €</span>
+            )}
           </>
         ) : (
           <span className="text-2xl whitespace-nowrap mr-2">{standardPrice.toFixed(2)} €</span>

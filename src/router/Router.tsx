@@ -2,6 +2,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import React from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
+import Admin from '../admin/Admin'
 import { AuthProvider } from '../context/AuthContext'
 import CartProvider from '../context/CartContext'
 import { FilterProvider } from '../hooks/useFilters'
@@ -13,11 +14,22 @@ export const stripePromise = loadStripe(
 )
 
 export const Router = () => {
+  const [isAdmin, setIsAdmin] = React.useState(false)
+  const params = new URLSearchParams(window.location.search)
+
+  React.useEffect(() => {
+    if (params.get('admin')) {
+      setIsAdmin(true)
+    }
+  }, [params])
+
   const publicRoutes = routesConfig.filter((route) => !route.isProtected && !route.isAnonymous)
   const anonymousRoutes = routesConfig.filter((route) => route.isAnonymous)
   const protectedRoutes = routesConfig.filter((route) => route.isProtected)
 
-  return (
+  return isAdmin ? (
+    <Admin />
+  ) : (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>

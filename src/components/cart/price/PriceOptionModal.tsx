@@ -1,8 +1,8 @@
 import React from 'react'
 
-import MyModal from './Modal'
+import MyModal from '../../common/Modal'
+import { PriceRow } from '../../types/types'
 import { PriceTableComponent } from './PriceTableComponent'
-import { PriceRow } from './ProductDetail'
 
 interface Props {
   isOpen: boolean
@@ -10,7 +10,7 @@ interface Props {
   productOption: PriceRow[]
 }
 
-export const PriceOptionModal: React.FC = ({ isOpen, setIsOpen, productOption }: Props) => {
+export const PriceOptionModal = ({ isOpen, setIsOpen, productOption }: Props) => {
   return (
     <MyModal isOpen={isOpen} setIsOpen={setIsOpen}>
       <PriceTableComponent priceData={productOption} onChange={() => {}} />

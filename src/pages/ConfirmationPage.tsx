@@ -2,9 +2,9 @@ import emailjs from '@emailjs/browser'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import CartItem from '../components/cart/CartItemBatchDisplay'
 import { useAuth } from '../context/AuthContext'
 import { useCartContext } from '../context/CartContext'
-import CartItem from './CartItem'
 
 emailjs.init({
   publicKey: 'DsyslrqbT-Wcnl4Oe',

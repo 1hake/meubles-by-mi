@@ -2,7 +2,7 @@ import { faFacebook, faInstagram, faTwitter } from '@fortawesome/free-brands-svg
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
 
-export const Footer = () => {
+export const Contact = () => {
   return (
     <div className="p-8 bg-slate-800 text-center text-gray-300 rounded-lg mt-10">
       <div className="md:flex md:justify-between md:items-center">

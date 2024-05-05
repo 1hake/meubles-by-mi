@@ -1,13 +1,20 @@
 import { Elements } from '@stripe/react-stripe-js'
 import React, { useEffect } from 'react'
 
-import useCreatePaymentIntent from '../hooks/useCreatePaymentIntent'
-import { stripePromise } from '../router/Router'
-import { Loader } from './Loader'
+import { useCartContext } from '../../context/CartContext'
+import useCreatePaymentIntent from '../../hooks/useCreatePaymentIntent'
+import { stripePromise } from '../../router/Router'
+import { Loader } from '../common/Loader'
+import { OrderInfo } from '../types/types'
 import PaymentForm from './PaymentForm'
 
-const CartPayment: React.FC = ({ orderInfo, totalPrice }) => {
+interface Props {
+  orderInfo: OrderInfo
+}
+
+const CartPayment = ({ orderInfo }: Props) => {
   const { createPaymentIntent, clientSecret } = useCreatePaymentIntent()
+  const { totalPrice } = useCartContext()
 
   useEffect(() => {
     createPaymentIntent(totalPrice, 'eur')

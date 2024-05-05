@@ -9,6 +9,13 @@ export interface ShippingOptions {
   France?: number | null
 }
 
+export interface ShippingAddress {
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+}
+
 export interface Image {
   image: string
   color?: string
@@ -38,7 +45,7 @@ export interface Product {
   name: string
   main_image: string
   related_images: string[]
-  color_images: ProductVariant[]
+  color_images: ColorImage[]
   categories: string[]
   description: string
   priceOptions: PriceRow[]
@@ -50,6 +57,12 @@ export interface Product {
   ref: FirestoreRef
 }
 
+interface ColorImage {
+  color: string
+  image: string
+  availableQuantity: number
+}
+
 export interface CartItem {
   id: string
   name: string
@@ -59,4 +72,24 @@ export interface CartItem {
   shippingOptions: ShippingOptions
 }
 
+export interface OrderInfo {
+  userId: string | null
+  products: { productId: FirestoreRef; variant: ProductVariant[] }[]
+  shippingAddress: ShippingAddress
+}
+
 export type Country = 'Belgique' | 'Luxembourg' | 'France'
+
+export type Status = 'en attente' | 'en cours de livraison' | 'livré'
+
+export interface Order {
+  userId: string
+  products: Array<{
+    productId: string
+    quantity: number
+    color?: string
+  }>
+  orderDate: Date
+  shippingAddress: ShippingAddress
+  status?: Status
+}

@@ -2,11 +2,17 @@ import React, { useEffect } from 'react'
 
 import { useAuth } from '../../context/AuthContext'
 import useOrders from '../../hooks/useOrders'
-import { Loader } from '../Loader'
+import { Loader } from '../common/Loader'
+
+interface Variant {
+  image: string
+  quantity: number
+  color: string
+}
 
 interface Product {
   productId: string
-  quantity: number
+  variant: Variant[]
 }
 
 interface Order {
@@ -19,19 +25,20 @@ interface Order {
     address: string
     city: string
     postalCode: string
-    country: string
+    country?: string // Optional if not always present
   }
 }
 
 const UserOrdersPage: React.FC = () => {
   const { orders, loading, error, fetchOrdersByUserId } = useOrders()
+  console.log('🚀 ~ orders:', orders)
   const { currentUser } = useAuth()
 
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchOrdersByUserId(currentUser.uid)
     }
-  }, [])
+  }, [currentUser, fetchOrdersByUserId])
 
   if (loading) {
     return <Loader />
@@ -51,7 +58,13 @@ const UserOrdersPage: React.FC = () => {
                 Date de commande
               </th>
               <th scope="col" className="py-3 px-6">
-                Produits et quantités
+                Produits et détails
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Adresse de livraison
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Total Quantités
               </th>
             </tr>
           </thead>
@@ -60,9 +73,25 @@ const UserOrdersPage: React.FC = () => {
               <tr key={order.orderId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                 <td className="py-4 px-6">{new Date(order.orderDate).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6">
-                  {order.products.map((product) => (
-                    <div key={product.productId}>{`${product.productId} (Quantité : ${product.quantity})`}</div>
-                  ))}
+                  {order.products.map((product) =>
+                    product.variant.map((variant, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <img src={variant.image} alt="Product" className="w-10 h-10 object-cover rounded-full" />
+                        <span>{`Couleur: ${variant.color}, Quantité: ${variant.quantity}`}</span>
+                      </div>
+                    ))
+                  )}
+                </td>
+                <td className="py-4 px-6">
+                  {`${order.shippingAddress.fullName}, ${order.shippingAddress.address}, ${
+                    order.shippingAddress.city
+                  }, ${order.shippingAddress.postalCode}, ${order.shippingAddress.country || 'FR'}`}
+                </td>
+                <td className="py-4 px-6">
+                  {order.products.reduce(
+                    (total, product) => total + product.variant.reduce((sum, v) => sum + v.quantity, 0),
+                    0
+                  )}
                 </td>
               </tr>
             ))}

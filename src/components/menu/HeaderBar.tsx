@@ -10,10 +10,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useAuth } from '../context/AuthContext'
-import { useCartContext } from '../context/CartContext'
-import { categories } from '../data/categories'
-import CartBadge from './CartBadge'
+import { useAuth } from '../../context/AuthContext'
+import { useCartContext } from '../../context/CartContext'
+import { categories } from '../../data/categories'
+import CartBadge from '../cart/CartBadge'
 
 export const HeaderBar = () => {
   const { cart } = useCartContext()

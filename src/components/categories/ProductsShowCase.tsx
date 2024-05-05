@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import useDatabase, { DatabaseElement } from '../hooks/useDatabase'
-import useMediaQuery from '../hooks/useMediaQuery'
-import { getDownloadUrl } from '../utils/firebaseUtils'
-import ProductCard from './ProductCard'
-import { SectionTitle } from './SectionTitle'
+import { useCollectionName } from '../../hooks/useDatabase'
+import useMediaQuery from '../../hooks/useMediaQuery'
+import { getDownloadUrl } from '../../utils/firebaseUtils'
+import { SectionTitle } from '../common/SectionTitle'
+import ProductCard from '../products/ProductCard'
 
 export interface ShowcaseProps {
   limit: boolean
@@ -27,7 +27,7 @@ interface FirebaseElement extends DatabaseElement {
 export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
   const [images, setImages] = useState<FirebaseElement[]>([])
   const [index, setIndex] = useState(-1)
-  const elements: FirebaseElement[] = useDatabase('products', false)
+  const elements: FirebaseElement[] = useCollectionName('products', false)
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortByPrice, setSortByPrice] = useState(false)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')

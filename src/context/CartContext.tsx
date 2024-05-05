@@ -1,12 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-import { CartItem } from '../components/types/types'
+import { CartItem, Country, ShippingAddress } from '../components/types/types'
+import { calculateTotalPrice } from '../utils/prices'
 
 interface CartContextType {
   cart: CartItem[]
   addBatch: (newItems: CartItem[]) => void
   removeBatch: (itemId: string) => void
-  calculateTotal: () => number
+  shippingAddress: ShippingAddress
+  setShippingAddress: (address: ShippingAddress) => void
+  selectedCountry: Country
+  setSelectedCountry: (country: Country) => void
+  totalPrice: number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -23,6 +28,14 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
 
   const [cart, setCart] = useState<CartItem[]>(getInitialCart)
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+  const [selectedCountry, setSelectedCountry] = useState<Country>('France')
+  const [totalPrice, setTotalPrice] = useState(0)
 
   useEffect(() => {
     try {
@@ -30,6 +43,8 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } catch (error) {
       console.error('Failed to save cart to localStorage:', error)
     }
+    const totalPrice = cart.reduce((acc, item) => acc + calculateTotalPrice(item.variants, item.priceOption), 0)
+    setTotalPrice(totalPrice)
   }, [cart])
 
   const addBatch = (newItems: CartItem[]) => {
@@ -56,19 +71,20 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     })
   }
 
-  const calculateTotal = (): number => {
-    return cart.reduce(
-      (total, item) =>
-        total + item.variants.reduce((subTotal, variant) => subTotal + variant.price * variant.quantity, 0),
-      0
-    )
-  }
-
   const removeBatch = (itemId: string) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
   }
 
-  const contextValue = { cart, addBatch, removeBatch, calculateTotal }
+  const contextValue = {
+    cart,
+    addBatch,
+    removeBatch,
+    shippingAddress,
+    setShippingAddress,
+    selectedCountry,
+    setSelectedCountry,
+    totalPrice
+  }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
 }

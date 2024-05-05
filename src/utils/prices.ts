@@ -1,4 +1,4 @@
-import { CartItem, Country, PriceRow, ProductVariant } from '../types/types'
+import { CartItem, Country, PriceRow, ProductVariant } from '../components/types/types'
 
 // Function to calculate the standard price for a batch of items based on the smallest unit price
 export const calculateStandardPrice = (batchItems: ProductVariant[], priceOptions: PriceRow[]): number => {

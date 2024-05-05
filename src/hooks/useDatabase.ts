@@ -5,7 +5,7 @@ import { projectFirestore } from '../firebase-config'
 
 // Updated useDatabase hook to fetch data and include Firestore references
 
-const useDatabase = (collectionName: string, limit: boolean) => {
+export const useCollectionName = (collectionName: string, limit: boolean) => {
   const [images, setImages] = useState([])
 
   useEffect(() => {
@@ -39,5 +39,3 @@ const useDatabase = (collectionName: string, limit: boolean) => {
 
   return images
 }
-
-export default useDatabase

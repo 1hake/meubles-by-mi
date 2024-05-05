@@ -1,10 +1,10 @@
 import React from 'react'
 
-import services from '../data/services'
-import { SectionTitle } from './SectionTitle'
-import ServiceItem from './ServiceItem'
+import services from '../../data/services'
+import { SectionTitle } from '../common/SectionTitle'
+import CategorieBlock from './CategorieBlock'
 
-export const Services = () => {
+export const Categories = () => {
   return (
     <div className="">
       <div className="">
@@ -12,7 +12,7 @@ export const Services = () => {
       </div>
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5`}>
         {services.map((service) => (
-          <ServiceItem
+          <CategorieBlock
             key={service.title}
             title={service.title}
             icon={service.icon}

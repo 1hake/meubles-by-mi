@@ -9,13 +9,6 @@ import { calculateCartPrice } from './priceCalcutaions/prices'
 import { ShippingAddressForm } from './ShippingAddressForm'
 import { Country } from './types/types'
 
-export interface ShippingAddress {
-  fullName: string
-  address: string
-  city: string
-  postalCode: string
-}
-
 interface CartProps {}
 
 const Cart: React.FC<CartProps> = () => {
