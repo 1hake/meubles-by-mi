@@ -1,8 +1,11 @@
 import React from 'react'
 
-const NumberInput = ({ value, onChange }) => {
+export const NumberInput = ({ value, onChange }) => {
   const handleDecrement = () => {
-    if (value > 1) onChange(value - 1) // Optional: Prevent decrement below 1
+    if (value === 0) {
+      return
+    }
+    onChange(value - 1)
   }
 
   const handleIncrement = () => {
@@ -10,13 +13,13 @@ const NumberInput = ({ value, onChange }) => {
   }
 
   return (
-    <div className="w-full py-2 px-3 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-slate-800 dark:border-gray-700">
+    <div className="w-32 py-2 px-3 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-slate-800 dark:border-gray-700">
       <div className="flex justify-between items-center">
         <button
           type="button"
           className="text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md h-8 w-8 flex justify-center items-center"
           onClick={handleDecrement}
-          disabled={value <= 1} // Optional: Disable button if value is 1 or less
+          disabled={value === 0}
         >
           <svg
             className="w-4 h-4"
@@ -54,5 +57,3 @@ const NumberInput = ({ value, onChange }) => {
     </div>
   )
 }
-
-export default NumberInput

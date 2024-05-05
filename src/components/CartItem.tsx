@@ -1,5 +1,8 @@
 import React from 'react'
 
+import { calculateStandardPrice, calculateTotalPrice } from './priceCalcutaions/prices'
+import PriceDisplay from './PriceDisplay'
+
 interface PriceRow {
   quantity: string
   price: string
@@ -31,18 +34,11 @@ const CartItem: React.FC<CartItemProps> = ({ item, onRemove, selectedCountry }) 
   const { id, name, variants, shippingOptions, priceOption } = item
 
   const shippingCost = shippingOptions[selectedCountry] ?? 10 // Default shipping cost
-  const totalQuantity = variants.reduce((sum, variant) => sum + variant.quantity, 0)
-  const totalPrice = priceOption.reduce((acc, option) => {
-    if (parseInt(option.quantity) <= totalQuantity) {
-      return parseFloat(option.price) * totalQuantity // Calculate price based on the matched tier
-    }
-    return acc
-  }, 0)
-
-  const savings = parseFloat(priceOption[0].price) * totalQuantity - totalPrice // Calculate savings
+  const totalPrice = calculateTotalPrice(variants, priceOption)
+  const standardPrice = calculateStandardPrice(variants, priceOption)
 
   return (
-    <div className="relative bg-white p-4 rounded-lg border border-gray-200 mb-4 shadow-sm">
+    <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">
       <button onClick={() => onRemove(id)} className="absolute top-1 right-1 p-1 text-red-500 hover:text-red-700">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -59,17 +55,13 @@ const CartItem: React.FC<CartItemProps> = ({ item, onRemove, selectedCountry }) 
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         {variants.map((variant, index) => (
           <div key={index} className="flex justify-between items-center p-2">
-            <div className="flex items-center space-x-3">
-              <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
-              <div>
-                <p className="text-sm text-gray-500">{`Couleur : ${variant.color}`}</p>
-                <p className="text-sm text-gray-500">{`Quantité : ${variant.quantity}`}</p>
-              </div>
-            </div>
+            <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
+            <p className="text-sm text-gray-500">{`Couleur : ${variant.color}, Quantité : ${variant.quantity}`}</p>
           </div>
         ))}
-        <p className="text-right text-xl font-semibold">{`Prix Total : ${totalPrice.toFixed(2)} €`}</p>
-        {savings > 0 && <p className="text-right text-green-500">{`Économies réalisées : ${savings.toFixed(2)} €`}</p>}
+        <div className="flex justify-between items-center mt-4">
+          <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} shippingPrice={shippingCost} />
+        </div>
       </div>
     </div>
   )

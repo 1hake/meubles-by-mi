@@ -1,33 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-interface Variant {
-  color: string
-  image: string
-  quantity: number
-  price: number
-}
-
-interface CartItem {
-  id: string
-  name: string
-  variants: Variant[]
-  ref: {
-    converter: any
-    _key: {
-      path: {
-        segments: string[]
-        offset: number
-        len: number
-      }
-    }
-    type: string
-    firestore: any
-  }
-}
+import { CartItem } from '../components/types/types'
 
 interface CartContextType {
   cart: CartItem[]
   addBatch: (newItems: CartItem[]) => void
+  removeBatch: (itemId: string) => void
   calculateTotal: () => number
 }
 
@@ -86,7 +64,11 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     )
   }
 
-  const contextValue = { cart, addBatch, calculateTotal }
+  const removeBatch = (itemId: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
+  }
+
+  const contextValue = { cart, addBatch, removeBatch, calculateTotal }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
 }

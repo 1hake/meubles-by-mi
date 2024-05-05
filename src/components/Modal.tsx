@@ -1,6 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react'
-import React from 'react'
-import { Fragment } from 'react'
+import React, { Fragment } from 'react'
 
 interface Props {
   isOpen: boolean
@@ -11,10 +10,6 @@ interface Props {
 export default function MyModal({ isOpen, setIsOpen, children }: Props) {
   function closeModal() {
     setIsOpen(false)
-  }
-
-  function openModal() {
-    setIsOpen(true)
   }
 
   return (
@@ -30,7 +25,7 @@ export default function MyModal({ isOpen, setIsOpen, children }: Props) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/25" />
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
@@ -45,7 +40,13 @@ export default function MyModal({ isOpen, setIsOpen, children }: Props) {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  {children}{' '}
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-3 right-3 rounded-full p-1.5 text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  >
+                    Fermer
+                  </button>
+                  {children}
                 </Dialog.Panel>
               </Transition.Child>
             </div>

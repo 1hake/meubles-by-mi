@@ -7,43 +7,14 @@ import Lightbox from 'yet-another-react-lightbox'
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
 import { Loader } from './Loader'
+import { NumberInput } from './NumberInput'
+import { calculateStandardPrice, calculateTotalPrice } from './priceCalcutaions/prices'
 import PriceDisplay from './PriceDisplay'
 import { PriceOptionModal } from './PriceOptionModal'
 import { SectionTitle } from './SectionTitle'
+import { ColorImage, Product } from './types/types'
 
-export interface PriceRow {
-  quantity: string
-  price: string
-}
-
-interface Product {
-  id: string
-  name: string
-  main_image: string
-  related_images: string[]
-  color_images: ColorImage[]
-  categories: string[]
-  description: string
-  priceOptions: PriceRow[]
-  published: boolean
-  promotion: boolean
-  new: boolean
-  facebookProductUrl: string
-  shippingOptions: {
-    Belgique: number | null
-    Luxembourg: number | null
-    France: number | null
-  }
-  ref: any
-}
-
-interface ColorImage {
-  color: string
-  image: string
-  quantity: number
-}
-
-const ProductDetail = () => {
+const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [batchItems, setBatchItems] = useState<ColorImage[]>([])
@@ -51,6 +22,7 @@ const ProductDetail = () => {
 
   const { addBatch } = useCartContext()
   const product = useSingleDoc<Product>('products', id)
+  console.log('🚀 ~ product:', product)
 
   useEffect(() => {
     if (product && product.color_images) {
@@ -66,15 +38,8 @@ const ProductDetail = () => {
     setBatchItems(batchItems.map((item) => (item.color === color ? { ...item, quantity } : item)))
   }
 
-  const calculateTotalPrice = () => {
-    const totalQuantity = batchItems.reduce((acc, item) => acc + item.quantity, 0)
-    const priceOption = product.priceOptions.find((p) => parseInt(p.quantity) === totalQuantity)
-    return priceOption ? parseFloat(priceOption.price) : 0
-  }
-
   const handleBuyClick = () => {
-    const totalPrice = calculateTotalPrice()
-    if (totalPrice !== null) {
+    if (totalPrice > 0 || standardPrice > 0) {
       const itemToAdd = {
         id: product.id,
         name: product.name,
@@ -94,10 +59,8 @@ const ProductDetail = () => {
     }
   }
 
-  const totalPrice = calculateTotalPrice()
-  const standardPrice =
-    parseFloat(product.priceOptions[0].price) * batchItems.reduce((acc, item) => acc + item.quantity, 0)
-  const savings = standardPrice - totalPrice
+  const totalPrice = calculateTotalPrice(batchItems, product.priceOptions)
+  const standardPrice = calculateStandardPrice(batchItems, product.priceOptions)
 
   return (
     <div className="bg-white text-black relative pb-20">
@@ -117,11 +80,11 @@ const ProductDetail = () => {
             Voir en grand format
           </button>
         </div>
-        <div className="col-span-1 lg:col-span-4 md:col-span-2">
+        <div className="col-span-3 lg:col-span-4 md:col-span-2">
           <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded">
             <h2 className="text-2xl font-bold">Prix initial : {product.priceOptions[0].price} €</h2>
             <button
-              className="bg-white text-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
+              className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
               onClick={() => setOpenModal(true)}
             >
               Voir les options de prix
@@ -134,20 +97,14 @@ const ProductDetail = () => {
                 <img src={item.image} alt={`Image of ${item.color}`} className="h-16 w-16 rounded-full shadow" />
                 <span className="font-semibold">{item.color}</span>
               </div>
-              <input
-                type="number"
-                min="0"
-                className="w-16 p-2 border rounded text-center"
-                value={item.quantity}
-                onChange={(e) => handleColorQuantityChange(item.color, parseInt(e.target.value))}
-              />
+              <NumberInput value={item.quantity} onChange={(value) => handleColorQuantityChange(item.color, value)} />
             </div>
           ))}
           <p className="text-gray-700 mb-4">{product.description}</p>
         </div>
       </div>
       <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between items-center shadow-lg z-50 mt-4">
-        <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} savings={savings} />
+        <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} />
         <button
           className="bg-white text-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-300"
           onClick={handleBuyClick}

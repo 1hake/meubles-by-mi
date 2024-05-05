@@ -5,7 +5,9 @@ import { useCartContext } from '../context/CartContext'
 import CartItem from './CartItem'
 import CartPayment from './CartPayment'
 import EmptyCart from './EmptyCart'
+import { calculateCartPrice } from './priceCalcutaions/prices'
 import { ShippingAddressForm } from './ShippingAddressForm'
+import { Country } from './types/types'
 
 export interface ShippingAddress {
   fullName: string
@@ -17,7 +19,7 @@ export interface ShippingAddress {
 interface CartProps {}
 
 const Cart: React.FC<CartProps> = () => {
-  const { cart, removeItem, calculateTotal } = useCartContext()
+  const { cart, removeBatch, calculateTotal } = useCartContext()
   console.log('🚀 ~ cart:', cart)
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
@@ -25,8 +27,9 @@ const Cart: React.FC<CartProps> = () => {
     city: '',
     postalCode: ''
   })
-  const [selectedCountry, setSelectedCountry] = useState<string>('France')
+  const [selectedCountry, setSelectedCountry] = useState<Country>('France')
   const { currentUser } = useAuth()
+  console.log('🚀 ~ currentUser:', currentUser)
 
   const [addressCompleted, setAddressCompleted] = useState(false)
   const [shippingError, setShippingError] = useState('')
@@ -40,13 +43,6 @@ const Cart: React.FC<CartProps> = () => {
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
   }
-
-  const shippingFee = useMemo(() => {
-    return cart.reduce((total, item) => {
-      const itemShipping = item.shippingOptions[selectedCountry] ?? 10 // Default shipping fee is 10 if not specified
-      return total + itemShipping
-    }, 0)
-  }, [cart, selectedCountry])
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCountry(e.target.value)
@@ -77,7 +73,8 @@ const Cart: React.FC<CartProps> = () => {
     status: 'en attente'
   }
 
-  const totalPrice = calculateTotal() + shippingFee
+  const totalPrice = calculateCartPrice(cart, selectedCountry)
+  console.log('🚀 ~ totalPrice:', totalPrice)
 
   if (cart.length === 0) {
     return <EmptyCart />
@@ -93,7 +90,7 @@ const Cart: React.FC<CartProps> = () => {
               key={item.id}
               item={item}
               selectedCountry={selectedCountry}
-              onRemove={() => removeItem(item.id)}
+              onRemove={() => removeBatch(item.id)}
             />
           ))}
           <div>

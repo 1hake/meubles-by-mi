@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
 import { useCartContext } from '../context/CartContext'
+import CartItem from './CartItem'
 
 emailjs.init({
   publicKey: 'DsyslrqbT-Wcnl4Oe',
@@ -57,16 +58,7 @@ export const ConfirmationPage = () => {
       <div className="p-6 rounded-lg">
         <h2 className="text-2xl font-semibold mb-6">Récapitulatif de votre commande</h2>
         {cart.map((item, index) => (
-          <div key={index} className="flex justify-between items-center mb-4 p-4 border-2 border-black rounded-md">
-            <div className="flex items-center">
-              <img src={item.image} alt={item.name} className="h-16 w-16 rounded-full object-cover mr-4" />
-              <div>
-                <div className="text-xl font-medium">{item.name}</div>
-                <div className="text-gray-800">Quantité: {item.quantity}</div>
-              </div>
-            </div>
-            <div className="text-lg font-semibold">{(item.price * item.quantity).toFixed(2)}€</div>
-          </div>
+          <CartItem key={index} item={item} onRemove={() => {}} selectedCountry="Belgique" />
         ))}
         <div className="mt-10 text-center">
           <button
