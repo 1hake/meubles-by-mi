@@ -62,7 +62,7 @@ export const ConfirmationPage = () => {
         ))}
         <div className="mt-10 text-center">
           <button
-            onClick={backToHome}
+            onClick={() => backToHome()}
             className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-150"
           >
             Retour à l'accueil

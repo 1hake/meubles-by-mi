@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
 
-import { CartItem, Country, ShippingAddress } from '../components/types/types'
+import { CartItem, Country, OrderInfo, ShippingAddress } from '../components/types/types'
 import { calculateTotalPrice } from '../utils/prices'
+import { useAuth } from './AuthContext'
 
 interface CartContextType {
   cart: CartItem[]
@@ -12,6 +14,15 @@ interface CartContextType {
   selectedCountry: Country
   setSelectedCountry: (country: Country) => void
   totalPrice: number
+  addressCompleted: boolean
+  setAddressCompleted: (completed: boolean) => void
+  orderInfo: OrderInfo | null
+  setOrderInfo: (info: OrderInfo | null) => void
+  allItemsShippable: boolean
+  setUserInfoAsShippingAddress: () => void
+  shippingError: string
+  setShippingError: (error: string) => void
+  validateAddress: () => boolean
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -27,6 +38,8 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   }
 
+  const { currentUser } = useAuth()
+
   const [cart, setCart] = useState<CartItem[]>(getInitialCart)
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     fullName: '',
@@ -36,16 +49,57 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   })
   const [selectedCountry, setSelectedCountry] = useState<Country>('France')
   const [totalPrice, setTotalPrice] = useState(0)
+  const [addressCompleted, setAddressCompleted] = useState(false)
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null)
+  const [shippingError, setShippingError] = useState('')
+
+  const validateAddress = () => {
+    if (
+      shippingAddress.fullName === '' ||
+      shippingAddress.address === '' ||
+      shippingAddress.city === '' ||
+      shippingAddress.postalCode === ''
+    ) {
+      setShippingError('Veuillez remplir tous les champs')
+      toast.error('Veuillez remplir tous les champs')
+      return false
+    } else {
+      setShippingError('')
+      setAddressCompleted(true)
+      return true
+    }
+  }
+
+  const allItemsShippable = useMemo(() => {
+    return cart.every(
+      (item) => item.shippingOptions[selectedCountry] !== null && item.shippingOptions[selectedCountry] !== undefined
+    )
+  }, [cart, selectedCountry])
 
   useEffect(() => {
-    try {
-      localStorage.setItem('cart', JSON.stringify(cart))
-    } catch (error) {
-      console.error('Failed to save cart to localStorage:', error)
-    }
+    localStorage.setItem('cart', JSON.stringify(cart))
+
     const totalPrice = cart.reduce((acc, item) => acc + calculateTotalPrice(item.variants, item.priceOption), 0)
     setTotalPrice(totalPrice)
+
+    const orderInfo: OrderInfo = {
+      userId: currentUser?.id,
+      products: cart.map((item) => ({ productId: item.ref, variant: item.variants })),
+      shippingAddress
+    }
+    setOrderInfo(orderInfo)
   }, [cart])
+
+  const setUserInfoAsShippingAddress = () => {
+    if (currentUser) {
+      setShippingAddress({
+        fullName: currentUser.fullName,
+        address: currentUser.address || '',
+        city: currentUser.city || '',
+        postalCode: currentUser.postalCode || ''
+      })
+    }
+  }
 
   const addBatch = (newItems: CartItem[]) => {
     setCart((prevCart) => {
@@ -76,6 +130,7 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
 
   const contextValue = {
+    setCart,
     cart,
     addBatch,
     removeBatch,
@@ -83,7 +138,16 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setShippingAddress,
     selectedCountry,
     setSelectedCountry,
-    totalPrice
+    addressCompleted,
+    setAddressCompleted,
+    orderInfo,
+    setOrderInfo,
+    totalPrice,
+    allItemsShippable,
+    setUserInfoAsShippingAddress,
+    shippingError,
+    setShippingError,
+    validateAddress
   }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>

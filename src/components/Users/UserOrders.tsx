@@ -4,34 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import useOrders from '../../hooks/useOrders'
 import { Loader } from '../common/Loader'
 
-interface Variant {
-  image: string
-  quantity: number
-  color: string
-}
-
-interface Product {
-  productId: string
-  variant: Variant[]
-}
-
-interface Order {
-  orderId?: string
-  userId: string
-  products: Product[]
-  orderDate: Date
-  shippingAddress: {
-    fullName: string
-    address: string
-    city: string
-    postalCode: string
-    country?: string // Optional if not always present
-  }
-}
-
 const UserOrdersPage: React.FC = () => {
   const { orders, loading, error, fetchOrdersByUserId } = useOrders()
-  console.log('🚀 ~ orders:', orders)
   const { currentUser } = useAuth()
 
   useEffect(() => {
@@ -49,8 +23,8 @@ const UserOrdersPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+    <div className="px-4">
+      <div className="overflow-x-auto relative  border-2 border-black rounded-lg">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>

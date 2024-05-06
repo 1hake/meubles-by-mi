@@ -23,7 +23,7 @@ const CartPayment = ({ orderInfo }: Props) => {
   if (!clientSecret) return <Loader />
 
   return (
-    <div className="rounded-lg flex flex-col md:flex-row justify-center">
+    <div className="rounded-lg flex flex-col md:flex-row justify-center w-full">
       <Elements stripe={stripePromise} options={{ clientSecret }}>
         <PaymentForm clientSecret={clientSecret} orderInfo={orderInfo} />
       </Elements>

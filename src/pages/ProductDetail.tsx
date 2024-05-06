@@ -2,6 +2,7 @@ import 'yet-another-react-lightbox/styles.css'
 
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import Lightbox from 'yet-another-react-lightbox'
 
 import PriceDisplay from '../components/cart/price/PriceDisplay'
@@ -56,6 +57,7 @@ const ProductDetail: React.FC = () => {
       }
       addBatch([itemToAdd])
       setBatchItems(batchItems.map((item) => ({ ...item, quantity: 0 }))) // Reset quantities after adding to cart
+      toast.success('Lot ajouté au panier')
     }
   }
 

@@ -1,23 +1,23 @@
 import React from 'react'
 
-import { ShippingAddress } from '../types/types'
+import { useCartContext } from '../../context/CartContext'
+import { Country, ShippingAddress } from '../types/types'
 
 export const ShippingAddressForm = ({
   shippingAddress,
   handleAddressChange,
-  handleAddressSubmit,
   fillAddressWithUser,
   shippingError
 }: {
   shippingAddress: ShippingAddress
   handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleAddressSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   fillAddressWithUser: () => void
   shippingError: string
 }) => {
+  const { selectedCountry, setSelectedCountry } = useCartContext()
   return (
-    <div className="p-4 bg-gray-50">
-      <form onSubmit={handleAddressSubmit} className="space-y-4">
+    <div className="p-4 bg-gray-50 border-2 border-black rounded-md">
+      <form className="space-y-4">
         <h3 className="text-lg font-medium mb-4">Adresse de Livraison</h3>
         <button
           type="button"
@@ -62,12 +62,20 @@ export const ShippingAddressForm = ({
           className="input input-bordered w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
           required
         />
-        <button
-          type="submit"
-          className="btn btn-primary mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-150 ease-in-out"
+        {shippingError && <p className="text-red-500">{shippingError}</p>}
+        <p className="text-sm font-semibold text-gray-900">Choisissez votre pays:</p>
+        <select
+          id="country"
+          value={selectedCountry}
+          onChange={(e) => setSelectedCountry(e.target.value as Country)}
+          className="mt-1 block w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
         >
-          Continuer vers le paiement
-        </button>
+          {['France', 'Belgique', 'Luxembourg'].map((country) => (
+            <option key={country} value={country}>
+              {country}
+            </option>
+          ))}
+        </select>
       </form>
     </div>
   )
