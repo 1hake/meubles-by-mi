@@ -10,7 +10,7 @@ interface Props {
   onChange: (quantity: string) => void
 }
 
-export const PriceTableComponent: React.FC = ({ priceData, onChange }: Props) => {
+export const PriceTableComponent = ({ priceData, onChange }: Props) => {
   const [selectedQuantity, setSelectedQuantity] = useState<string>('')
 
   return (

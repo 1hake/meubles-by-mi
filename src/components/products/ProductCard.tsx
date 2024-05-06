@@ -45,9 +45,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-black transition-transform ease-in-out duration-300 transform hover:scale-105 cursor-pointer"
+      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-black cursor-pointer flex flex-col justify-between"
     >
-      <img src={src} alt={name} className="w-full h-56 object-cover mb-2" />
+      <img src={src} alt={name} className="w-full h-auto object-cover mb-2" />
       <div className="p-4 flex flex-col gap-2">
         <h3 className="text-xl font-semibold mb-1">{name}</h3>
         <div className="flex items-center space-x-2">
@@ -58,8 +58,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
           {promotion && <PromotionTag percentage={promotion} />}
         </div>
-        <p className="text-gray-700 text-sm mb-2">{truncatedDescription || 'No description available.'}</p>
-        <p className="text-gray-800 text-xl font-bold">{`${price}€`}</p>
+        <p className="text-gray-700 text-sm mb-2">{truncatedDescription || 'Aucune description disponible.'}</p>
+      </div>
+      <div className="p-4 mt-auto flex justify-end bg-black">
+        <p className="text-white text-2xl font-bold">{`${price}€`}</p>
       </div>
     </div>
   )

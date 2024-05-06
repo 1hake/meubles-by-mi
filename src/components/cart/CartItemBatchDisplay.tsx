@@ -37,7 +37,8 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
         {variants.map((variant, index) => (
           <div key={index} className="flex justify-between items-center p-2">
             <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
-            <p className="text-sm text-gray-500">{`Couleur : ${variant.color}, Quantité : ${variant.quantity}`}</p>
+            <p className="text-sm text-gray-500">{`Couleur : ${variant.color}`}</p>
+            <h3 className="text-md text-black">{`x${variant.quantity}`}</h3>
           </div>
         ))}
         <div className="flex justify-between items-center mt-4">

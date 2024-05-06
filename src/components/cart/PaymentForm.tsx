@@ -11,12 +11,12 @@ interface PaymentFormProps {
   orderInfo: any
 }
 
-const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret, orderInfo }) => {
+const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret }) => {
   const stripe = useStripe()
   const elements = useElements()
   const navigate = useNavigate()
   const { addOrder } = useOrders()
-  const { setCart } = useCartContext()
+  const { setCart, orderInfo } = useCartContext()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -37,7 +37,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret, orderInfo }) =>
     } else {
       console.log('Payment successful:', result.paymentIntent, orderInfo)
       toast.success('Paiement effectué avec succès')
-      setCart([])
       await addOrder({ ...orderInfo, orderDate: new Date(), status: 'en attente' })
       navigate('/confirmation')
     }

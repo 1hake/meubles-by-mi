@@ -16,7 +16,7 @@ emailjs.init({
 })
 
 export const ConfirmationPage = () => {
-  const { cart } = useCartContext()
+  const { cart, resetCart } = useCartContext()
   const navigate = useNavigate()
   const { currentUser } = useAuth()
 
@@ -28,6 +28,7 @@ export const ConfirmationPage = () => {
 
   const backToHome = () => {
     localStorage.removeItem('cart')
+    resetCart()
     navigate('/')
   }
 

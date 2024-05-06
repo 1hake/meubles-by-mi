@@ -23,6 +23,7 @@ interface CartContextType {
   shippingError: string
   setShippingError: (error: string) => void
   validateAddress: () => boolean
+  resetCart: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -53,6 +54,20 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null)
   const [shippingError, setShippingError] = useState('')
 
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+
+    const totalPrice = cart.reduce((acc, item) => acc + calculateTotalPrice(item.variants, item.priceOption), 0)
+    setTotalPrice(totalPrice)
+
+    const orderInfo: OrderInfo = {
+      userId: currentUser?.id,
+      products: cart.map((item) => ({ productId: item.ref, variant: item.variants })),
+      shippingAddress
+    }
+    setOrderInfo(orderInfo)
+  }, [cart])
+
   const validateAddress = () => {
     if (
       shippingAddress.fullName === '' ||
@@ -75,20 +90,6 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       (item) => item.shippingOptions[selectedCountry] !== null && item.shippingOptions[selectedCountry] !== undefined
     )
   }, [cart, selectedCountry])
-
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart))
-
-    const totalPrice = cart.reduce((acc, item) => acc + calculateTotalPrice(item.variants, item.priceOption), 0)
-    setTotalPrice(totalPrice)
-
-    const orderInfo: OrderInfo = {
-      userId: currentUser?.id,
-      products: cart.map((item) => ({ productId: item.ref, variant: item.variants })),
-      shippingAddress
-    }
-    setOrderInfo(orderInfo)
-  }, [cart])
 
   const setUserInfoAsShippingAddress = () => {
     if (currentUser) {
@@ -129,6 +130,20 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
   }
 
+  const resetCart = () => {
+    setCart([])
+    setTotalPrice(0)
+    setAddressCompleted(false)
+    setOrderInfo(null)
+    setShippingAddress({
+      fullName: '',
+      address: '',
+      city: '',
+      postalCode: ''
+    })
+    localStorage.removeItem('cart')
+  }
+
   const contextValue = {
     setCart,
     cart,
@@ -147,7 +162,8 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setUserInfoAsShippingAddress,
     shippingError,
     setShippingError,
-    validateAddress
+    validateAddress,
+    resetCart
   }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
