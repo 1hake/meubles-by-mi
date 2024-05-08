@@ -68,5 +68,3 @@ export const SignInForm: React.FC = () => {
     </div>
   )
 }
-
-export default SignInForm
