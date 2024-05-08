@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext'
 
-const SignInForm: React.FC = () => {
+export const SignInForm: React.FC = () => {
   const { login, currentUser, error } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
