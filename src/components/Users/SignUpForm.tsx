@@ -17,7 +17,7 @@ interface UserProfile extends ShippingAddress {
   userId: string
 }
 
-const SignUpForm: React.FC = () => {
+export const SignUpForm: React.FC = () => {
   const { signup, currentUser, error } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -72,5 +72,3 @@ const SignUpForm: React.FC = () => {
     </div>
   )
 }
-
-export default SignUpForm
