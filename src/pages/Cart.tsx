@@ -4,7 +4,7 @@ import CartItemList from '../components/cart/CartItemList'
 import CartShipping from '../components/cart/CartShipping'
 import EmptyCart from '../components/cart/EmptyCart'
 import PriceDisplay from '../components/cart/price/PriceDisplay'
-import UserAuthentication from '../components/users/UserAuthentication'
+import UserAuthentication from '../components/Users/UserAuthentication'
 import { useAuth } from '../context/AuthContext'
 import { useCartContext } from '../context/CartContext'
 
