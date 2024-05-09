@@ -2,8 +2,7 @@ import React from 'react'
 
 import Admin from '../admin/Admin'
 import ProductCategory from '../components/categories/ProductCategory'
-// import { SignInForm } from '../components/users/SignInForm'
-// import { SignUpForm } from '../components/users/SignUpForm'
+import { SignUpForm } from '../components/users/SignUpForm'
 import UserOrdersPage from '../components/users/UserOrders'
 import Cart from '../pages/Cart'
 import { ConfirmationPage } from '../pages/ConfirmationPage'
@@ -45,16 +44,16 @@ export const routesConfig: Route[] = [
     path: '/contact',
     component: <Contact />
   },
-  // {
-  //   name: 'signin',
-  //   path: '/signin/:redirect?',
-  //   component: <SignUpForm />
-  // },
-  // {
-  //   name: 'signup',
-  //   path: '/signup/:redirect?',
-  //   component: <SignUpForm />
-  // },
+  {
+    name: 'signin',
+    path: '/signin/:redirect?',
+    component: <SignUpForm />
+  },
+  {
+    name: 'signup',
+    path: '/signup/:redirect?',
+    component: <SignUpForm />
+  },
   {
     name: 'confirmation',
     path: '/confirmation',

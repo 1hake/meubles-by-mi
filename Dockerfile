@@ -14,6 +14,9 @@ RUN npm install --legacy-peer-deps
 # Copy everything to /app directory
 COPY ./ ./
 
+# Add a command to list all files in the directory where the error occurs
+RUN ls -la src/components/users/
+
 # Build the application
 RUN npm run build
 
