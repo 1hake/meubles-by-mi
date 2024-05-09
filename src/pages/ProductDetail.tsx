@@ -111,7 +111,7 @@ const ProductDetail = () => {
               </button>
               <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
             </div>
-            <h1 className="text-xl font-bold my-4">Choisissez votre lot :</h1>
+            {batchItems.length > 0 && <h1 className="text-xl font-bold my-4">Choisissez vos couleurs :</h1>}
             {batchItems.map((item, index) => (
               <div key={index} className="flex flex-row items-center justify-between p-2 bg-gray-100 rounded">
                 <div className="flex items-center gap-2">

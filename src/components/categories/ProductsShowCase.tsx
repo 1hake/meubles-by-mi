@@ -46,7 +46,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
-            price: elements[index].price,
+            price: elements[index].priceOptions[0].price,
             published: elements[index].published,
             promotion: elements[index].promotion,
             new: elements[index].new
