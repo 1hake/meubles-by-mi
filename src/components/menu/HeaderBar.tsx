@@ -42,7 +42,7 @@ export const HeaderBar = () => {
   }
 
   return (
-    <div id="header" className="bg-white  sticky top-0 z-50 w-screen mb-4 px-4 py-6">
+    <div id="header" className="bg-white  sticky top-0 z-50 w-screen px-4 py-2">
       <div className="flex items-center justify-between">
         <div className="lg:hidden">
           <FontAwesomeIcon icon={faBars} size="lg" className="cursor-pointer" onClick={toggleMenu} />

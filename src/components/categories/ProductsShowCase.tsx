@@ -28,6 +28,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
   const [images, setImages] = useState<FirebaseElement[]>([])
   const [index, setIndex] = useState(-1)
   const elements: FirebaseElement[] = useCollectionName('products', false)
+  console.log('🚀 ~ elements:', elements)
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortByPrice, setSortByPrice] = useState(false)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -49,7 +50,8 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
             price: elements[index].priceOptions[0].price,
             published: elements[index].published,
             promotion: elements[index].promotion,
-            new: elements[index].new
+            new: elements[index].new,
+            color_images: elements[index].color_images
           }
         })
         setImages(newImages)
@@ -87,6 +89,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
               description={image.description}
               promotion={image.promotion}
               new={image.new}
+              colorNb={image?.color_images?.length || 0}
               onClick={(id) => navigate(`/product/${image.id}`)}
             />
           ))}

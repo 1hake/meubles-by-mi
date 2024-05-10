@@ -2,6 +2,7 @@ import React from 'react'
 
 import Admin from '../admin/Admin'
 import ProductCategory from '../components/categories/ProductCategory'
+import { SignInForm } from '../components/Users/SignInForm'
 import { SignUpForm } from '../components/Users/SignUpForm'
 import UserOrdersPage from '../components/Users/UserOrders'
 import Cart from '../pages/Cart'
@@ -47,7 +48,7 @@ export const routesConfig: Route[] = [
   {
     name: 'signin',
     path: '/signin/:redirect?',
-    component: <SignUpForm />
+    component: <SignInForm />
   },
   {
     name: 'signup',

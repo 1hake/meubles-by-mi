@@ -4,7 +4,6 @@ import React from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 
-import { HeroSection } from '../components/HeroSection'
 import { HeaderBar } from '../components/menu/HeaderBar' // Import your modified HeaderBar component
 
 export const Layout = ({ children }) => {
@@ -19,7 +18,8 @@ export const Layout = ({ children }) => {
       <ToastContainer theme="colored" autoClose={1000} />
 
       <div className="bg-white min-h-screen font-inter transition duration-1000 ease-in-out">
-        {!isHomePage ? <HeaderBar /> : <HeroSection />}
+        {/* {!isHomePage ? <HeaderBar /> : <HeroSection />} */}
+        <HeaderBar />
         <div className="max-w-8xl  mx-auto px-4 lg:px-8 lg:pt-4">
           {children}
           {/* <Footer /> */}
