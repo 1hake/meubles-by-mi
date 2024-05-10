@@ -93,7 +93,12 @@ const productsCollection = buildCollection<Product>({
           'chaise-velours': 'Chaise en velours',
           'chaise-microfibre': 'Chaise en microfibre',
           'fauteuil-velours': 'Fauteuil en velours',
-          'fauteuil-microfibre': 'Fauteuil en microfibre'
+          'fauteuil-microfibre': 'Fauteuil en microfibre',
+          'table-a-manger': 'Table à manger',
+          'table-haute-a-manger': 'Table haute à manger',
+          'table-basse-de-salon': 'Table basse de salon',
+          etagere: 'Étagère',
+          'meuble-tv': 'Meuble TV'
         }
       }
     }),

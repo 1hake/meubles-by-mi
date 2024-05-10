@@ -1,6 +1,6 @@
 import React from 'react'
 
-import services from '../../data/services'
+import services from '../../data/categories'
 import { SectionTitle } from '../common/SectionTitle'
 import CategorieBlock from './CategorieBlock'
 
@@ -10,7 +10,7 @@ export const Categories = () => {
       <div className="">
         <SectionTitle>Catégories</SectionTitle>
       </div>
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5`}>
+      <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5`}>
         {services.map((service) => (
           <CategorieBlock
             key={service.title}
