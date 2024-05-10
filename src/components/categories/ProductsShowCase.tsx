@@ -47,7 +47,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
-            price: elements[index].priceOptions[0].price,
+            price: elements[index].priceOptions?.[0].price || 0,
             published: elements[index].published,
             promotion: elements[index].promotion,
             new: elements[index].new,
@@ -60,11 +60,6 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
   }, [elements])
 
   const isMobile = useMediaQuery('(max-width: 768px)')
-
-  const filteredImages = images
-    .filter((image) => (selectedCategory ? image.categories.includes(selectedCategory) : true))
-    .slice()
-    .sort((a, b) => (sortByPrice ? (sortOrder === 'asc' ? a.price - b.price : b.price - a.price) : 0))
 
   return (
     <>
@@ -79,7 +74,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
           setSortOrder={setSortOrder}
         /> */}
         <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {filteredImages.map((image, index) => (
+          {images.map((image, index) => (
             <ProductCard
               key={index}
               src={image.src}
