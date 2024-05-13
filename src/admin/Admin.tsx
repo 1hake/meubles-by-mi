@@ -166,6 +166,10 @@ const productsCollection = buildCollection<Product>({
           description: 'Frais de livraison pour la France, laissez vide si non disponible'
         })
       }
+    }),
+    orderDate: buildProperty({
+      dataType: 'date',
+      validation: { required: false }
     })
   }
 })

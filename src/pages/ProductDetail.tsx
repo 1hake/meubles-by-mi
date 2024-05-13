@@ -27,6 +27,8 @@ const ProductDetail: React.FC = () => {
 
   const product: Product = useSingleDoc('products', id)
 
+  const productHasShippingOptions = product?.shippingOptions && product.shippingOptions.France > 0
+
   const productHasColorPrice =
     product?.color_images &&
     product.color_images.length > 0 &&
@@ -139,14 +141,12 @@ const ProductDetail: React.FC = () => {
             <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded-md">
               <div className="flex justify-between w-full">
                 <h1 className="text-3xl font-bold capitalize">{product.name}</h1>
-                <h2 className="text-2xl font-bold">
-                  {totalPrice > 0
-                    ? `${totalPrice} €`
-                    : product.priceOptions && product.priceOptions.length > 0
-                    ? `${product.priceOptions[0].price} €`
-                    : ''}
-                </h2>
               </div>
+              {!productHasShippingOptions && (
+                <div className="w-fit my-2 p-2 rounded-full bg-green-300 text-black-500 font-semibold">
+                  LIVRAISON GRATUITE
+                </div>
+              )}
               {product.priceOptions && product.priceOptions.length > 0 && (
                 <button
                   className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
