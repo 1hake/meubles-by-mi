@@ -3,6 +3,7 @@ import { User as FirebaseUser } from 'firebase/auth'
 import { useCallback } from 'react'
 
 import { Order, Product } from '../components/types/types'
+import { categories } from '../data/categories'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAexrhrIjr9t8_jxNz7nT3Ft9pmA2fg67s',
@@ -63,7 +64,7 @@ const productsCollection = buildCollection<Product>({
             name: 'Couleur',
             dataType: 'string',
             validation: { required: true },
-            description: 'Sélectionnez la couleur représentée par cette image'
+            description: 'Sélectionnez la couleur/option représentée par cette image'
           }),
           image: buildProperty({
             name: 'Image',
@@ -72,34 +73,30 @@ const productsCollection = buildCollection<Product>({
               storagePath: 'product_colors',
               acceptedFiles: ['image/*']
             },
-            description: "Téléchargez l'image représentant le produit dans cette couleur spécifique"
+            description: "Téléchargez l'image représentant le produit dans cette couleur/option spécifique"
           }),
           availableQuantity: buildProperty({
             name: 'Quantité disponible',
             dataType: 'number',
             validation: { required: true },
-            description: 'Quantité disponible pour cette couleur'
+            description: 'Quantité disponible pour cette couleur/option'
+          }),
+          price: buildProperty({
+            name: 'Prix',
+            dataType: 'number',
+            validation: { required: false },
+            description: 'Prix du produit dans cette couleur/option'
           })
         }
       },
-      description: 'Associez chaque couleur de produit à une image spécifique.'
+      description: 'Associez chaque couleur/option de produit à une image spécifique.'
     }),
     categories: buildProperty({
       name: 'Catégories',
       dataType: 'array',
       of: {
         dataType: 'string',
-        enumValues: {
-          'chaise-velours': 'Chaise en velours',
-          'chaise-microfibre': 'Chaise en microfibre',
-          'fauteuil-velours': 'Fauteuil en velours',
-          'fauteuil-microfibre': 'Fauteuil en microfibre',
-          'table-a-manger': 'Table à manger',
-          'table-haute-a-manger': 'Table haute à manger',
-          'table-basse-de-salon': 'Table basse de salon',
-          etagere: 'Étagère',
-          'meuble-tv': 'Meuble TV'
-        }
+        enumValues: categories
       }
     }),
     description: buildProperty({

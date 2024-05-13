@@ -2,24 +2,8 @@ import { addDoc, collection, getDocs, query, where } from 'firebase/firestore'
 import { FirestoreError } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 
+import { Order } from '../components/types/types'
 import { projectFirestore } from '../firebase-config'
-
-interface Order {
-  orderId?: string
-  userId: string // Assuming this corresponds to 'customerId'
-  products: Array<{
-    productId: string
-    quantity: number
-  }>
-  orderDate: Date
-  shippingAddress: {
-    fullName: string
-    address: string
-    city: string
-    postalCode: string
-    country: string
-  }
-}
 
 const useOrders = () => {
   const [orders, setOrders] = useState<Order[]>([])

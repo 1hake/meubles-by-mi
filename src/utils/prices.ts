@@ -1,7 +1,20 @@
-import { CartItem, Country, PriceRow, ProductVariant } from '../components/types/types'
+import { BatchItem, CartItem, ColorImage, Country, PriceRow } from '../components/types/types'
 
-// Function to calculate the standard price for a batch of items based on the smallest unit price
-export const calculateStandardPrice = (batchItems: ProductVariant[], priceOptions: PriceRow[]): number => {
+export const calculatePriceByColor = (batchItems: BatchItem[], colorImages: ColorImage[]): number => {
+  console.log('🚀 ~ calculatePriceByColor ~ colorImages:', colorImages)
+  return batchItems.reduce((total, item) => {
+    const correspondingColorImage = colorImages.find((ci) => ci.color === item.color)
+    if (!correspondingColorImage) {
+      return total
+    }
+    return total + correspondingColorImage.price * item.quantity
+  }, 0)
+}
+
+export const calculateStandardPrice = (batchItems: BatchItem[], priceOptions: PriceRow[]): number => {
+  if (priceOptions.length === 0) {
+    return 0
+  }
   const totalQuantity = batchItems.reduce((total, item) => total + item.quantity, 0)
   const sortedPriceOptions = priceOptions.sort((a, b) => parseInt(a.quantity) - parseInt(b.quantity))
   const smallestUnitPrice = parseInt(sortedPriceOptions[0].price)
@@ -9,18 +22,21 @@ export const calculateStandardPrice = (batchItems: ProductVariant[], priceOption
   return totalQuantity * smallestUnitPrice
 }
 
-// Function to calculate the total price for a batch of items considering exact match for total quantity or the standard price otherwise
-export const calculateTotalPrice = (batchItems: ProductVariant[], priceOptions: PriceRow[]): number => {
+export const calculateTotalPrice = (batchItems: BatchItem[], priceOptions: PriceRow[]): number => {
+  console.log('🚀 ~ calculateTotalPrice ~ priceOptions:', priceOptions)
   const totalQuantity = batchItems.reduce((total, item) => total + item.quantity, 0)
-  const priceOption = priceOptions.find((option) => parseInt(option.quantity) === totalQuantity)
+  const correspondingPriceOption = priceOptions.find((po) => parseInt(po.quantity) === totalQuantity)
 
-  return priceOption ? parseInt(priceOption.price) : calculateStandardPrice(batchItems, priceOptions)
+  if (!correspondingPriceOption) {
+    return calculateStandardPrice(batchItems, priceOptions)
+  }
+
+  return parseInt(correspondingPriceOption?.price || '0')
 }
 
-// Function to calculate the overall cart price including item prices and shipping based on country
 export const calculateCartPrice = (cart: CartItem[], country: Country): number => {
   return cart.reduce((total, item) => {
-    const totalPrice = calculateTotalPrice(item.variants, item.priceOption)
+    const totalPrice = calculateTotalPrice(item.variants, item.priceOption || [])
     const shippingCost = item.shippingOptions[country] ?? 10 // Default shipping cost if not defined
 
     return total + totalPrice + shippingCost

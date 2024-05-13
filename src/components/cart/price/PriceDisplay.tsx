@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface PriceDisplayProps {
-  totalPrice: number | null
+  totalPrice: number
   standardPrice?: number
   shippingPrice?: number
 }
@@ -10,16 +10,11 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({ totalPrice, standardPrice, 
   return (
     <div className="flex flex-col space-y-2">
       {totalPrice !== null && (
-        <>
-          <p className="text-xl font-bold">
-            <span className="text-2xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
-            {standardPrice && standardPrice !== totalPrice && (
-              <span className="text-md text-red-500 line-through">{standardPrice.toFixed(2)} €</span>
-            )}
-          </p>
-        </>
+        <p className="text-xl font-bold">
+          <span className="text-2xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
+        </p>
       )}
-      {totalPrice === null && standardPrice !== undefined && (
+      {standardPrice !== undefined && standardPrice > 0 && standardPrice < totalPrice && (
         <p className="text-xl font-bold">
           <span className="text-2xl whitespace-nowrap mr-2">{standardPrice.toFixed(2)} €</span>
         </p>

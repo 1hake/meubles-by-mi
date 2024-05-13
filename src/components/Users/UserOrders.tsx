@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import useOrders from '../../hooks/useOrders'
 import { Loader } from '../common/Loader'
+import { StatusTag } from './StatusTag'
 
 const UserOrdersPage: React.FC = () => {
   const { orders, loading, error, fetchOrdersByUserId } = useOrders()
@@ -40,6 +41,9 @@ const UserOrdersPage: React.FC = () => {
               <th scope="col" className="py-3 px-6">
                 Total Quantités
               </th>
+              <th scope="col" className="py-3 px-6">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -66,6 +70,9 @@ const UserOrdersPage: React.FC = () => {
                     (total, product) => total + product.variant.reduce((sum, v) => sum + v.quantity, 0),
                     0
                   )}
+                </td>
+                <td className="py-4 px-6">
+                  <StatusTag status={order.status}></StatusTag>
                 </td>
               </tr>
             ))}

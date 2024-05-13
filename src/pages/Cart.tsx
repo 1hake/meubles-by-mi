@@ -19,7 +19,7 @@ const Cart: React.FC = () => {
 
   return (
     <div className="my-10 p-6 bg-gray-100 rounded-lg">
-      <div className="md:grid md:grid-cols-2 gap-6">
+      <div className="md:grid md:grid-cols-2 gap-6 gap-y-10">
         <CartItemList />
         {!currentUser ? <UserAuthentication /> : <CartShipping />}
       </div>

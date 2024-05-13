@@ -12,43 +12,60 @@ const useSingleDoc = (collectionName: string, id: string) => {
 
     const fetchData = async () => {
       const docRef = doc(projectFirestore, collectionName, id)
-      console.log('🚀 ~ fetchData ~ docRef:', docRef)
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
         const data = { ...docSnap.data(), id: docSnap.id, ref: docRef }
 
-        // Get download URL for the main image
+        // Get download URL for the main image if it exists
         if (data.main_image) {
-          const mainImageRef = ref(projectStorage, data.main_image)
-          data.main_image = await getDownloadURL(mainImageRef)
+          try {
+            const mainImageRef = ref(projectStorage, data.main_image)
+            data.main_image = await getDownloadURL(mainImageRef)
+          } catch (error) {
+            console.error('Error downloading main image:', error)
+            // Optionally handle errors or set a default image
+          }
         }
 
-        // Fetch URLs for related images
+        // Fetch URLs for related images if they exist
         if (data.related_images && data.related_images.length > 0) {
-          const relatedImageUrls = await Promise.all(
-            data.related_images.map(async (image) => {
-              const imageRef = ref(projectStorage, image)
-              return await getDownloadURL(imageRef)
-            })
-          )
-          data.related_images = relatedImageUrls
+          try {
+            const relatedImageUrls = await Promise.all(
+              data.related_images.map(async (image) => {
+                const imageRef = ref(projectStorage, image)
+                return await getDownloadURL(imageRef)
+              })
+            )
+            data.related_images = relatedImageUrls
+          } catch (error) {
+            console.error('Error downloading related images:', error)
+            data.related_images = []
+          }
         } else {
-          data.related_images = [] // Set to empty array if no related images
+          data.related_images = []
         }
 
-        // Fetch URLs for color images
+        // Fetch URLs for color images if they exist
         if (data.color_images && data.color_images.length > 0) {
-          const colorImageUrls = await Promise.all(
-            data.color_images.map(async (item) => {
-              const imageRef = ref(projectStorage, item.image)
-              const imageUrl = await getDownloadURL(imageRef)
-              return { ...item, image: imageUrl } // Return color with updated URL
-            })
-          )
-          data.color_images = colorImageUrls
+          try {
+            const colorImageUrls = await Promise.all(
+              data.color_images.map(async (item) => {
+                if (item.image) {
+                  const imageRef = ref(projectStorage, item.image)
+                  const imageUrl = await getDownloadURL(imageRef)
+                  return { ...item, image: imageUrl } // Return color with updated URL
+                }
+                return item // Return item as is if no image to process
+              })
+            )
+            data.color_images = colorImageUrls
+          } catch (error) {
+            console.error('Error downloading color images:', error)
+            data.color_images = []
+          }
         } else {
-          data.color_images = [] // Set to empty array if no color images
+          data.color_images = []
         }
 
         if (isSubscribed) {

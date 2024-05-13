@@ -1,5 +1,3 @@
-// ProductsShowCase.jsx
-
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -8,27 +6,16 @@ import useMediaQuery from '../../hooks/useMediaQuery'
 import { getDownloadUrl } from '../../utils/firebaseUtils'
 import { SectionTitle } from '../common/SectionTitle'
 import ProductCard from '../products/ProductCard'
+import { Product } from '../types/types'
 
 export interface ShowcaseProps {
   limit: boolean
 }
 
-interface FirebaseElement extends DatabaseElement {
-  main_image: string
-  related_images: string[]
-  categories: string[]
-  description: string
-  price: number
-  published: boolean
-  promotion: number
-  new: boolean
-}
-
 export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
-  const [images, setImages] = useState<FirebaseElement[]>([])
+  const [images, setImages] = useState<Product[]>([])
   const [index, setIndex] = useState(-1)
-  const elements: FirebaseElement[] = useCollectionName('products', false)
-  console.log('🚀 ~ elements:', elements)
+  const elements: Product[] = useCollectionName('products', false)
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortByPrice, setSortByPrice] = useState(false)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -47,7 +34,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
-            price: elements[index].priceOptions?.[0].price || 0,
+            price: elements[index].priceOptions?.[0].price || elements[index].color_images?.[0].price || 0,
             published: elements[index].published,
             promotion: elements[index].promotion,
             new: elements[index].new,
@@ -79,7 +66,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
               key={index}
               src={image.src}
               name={image.name}
-              price={image.price}
+              price={image.price || image}
               id={image.id}
               description={image.description}
               promotion={image.promotion}

@@ -33,7 +33,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   colorNb,
   onClick
 }) => {
-  console.log('🚀 ~ colorNb:', colorNb)
   const [truncatedDescription, setTruncatedDescription] = useState<string>(description)
   const maxDescriptionLength = 100
 
@@ -65,8 +64,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
       <div className="px-4 py-2 mt-auto flex justify-end gap-3 bg-gray-700">
         {colorNb > 0 && (
-          <div className="bg-white flex justify-center items-center text-gray-700 px-2 py-1 text-xs uppercase font-semibold tracking-wide rounded-full">
-            {colorNb} couleurs
+          <div className="bg-white flex justify-center items-center text-gray-700 px-2 py-1 text-xs tracking-wide rounded-3xl">
+            {colorNb} autres...
           </div>
         )}
         <p className="text-white text-xl font-bold">{`${price}€`}</p>

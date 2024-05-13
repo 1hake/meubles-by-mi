@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { useCartContext } from '../../context/CartContext'
-import { calculateStandardPrice, calculateTotalPrice } from '../../utils/prices'
-import { CartItem } from '../types/types'
+import { calculatePriceByColor, calculateStandardPrice, calculateTotalPrice } from '../../utils/prices'
+import { CartItem, ColorImage } from '../types/types'
 import PriceDisplay from './price/PriceDisplay'
 
 interface CartItemProps {
@@ -13,10 +13,23 @@ interface CartItemProps {
 const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
   const { selectedCountry } = useCartContext()
   const { id, name, variants, shippingOptions, priceOption } = item
+  console.log('🚀 ~ CartItemBatchDisplay ~ variants:', variants)
 
-  const shippingCost = shippingOptions[selectedCountry] ?? 10 // Default shipping cost
-  const totalPrice = calculateTotalPrice(variants, priceOption)
-  const standardPrice = calculateStandardPrice(variants, priceOption)
+  // Determine if we need to calculate by color
+  const hasColorPricing = variants.some((variant) => 'price' in variant)
+  console.log('🚀 ~ CartItemBatchDisplay ~ hasColorPricing:', hasColorPricing)
+
+  // Calculate total price based on whether we use color pricing or standard price options
+  const totalPrice = hasColorPricing
+    ? calculatePriceByColor(variants as ColorImage[], variants as ColorImage[])
+    : calculateTotalPrice(variants, priceOption || [])
+  console.log('🚀 ~ CartItemBatchDisplay ~ totalPrice:', totalPrice)
+
+  // Standard price as a fallback when no specific pricing is provided
+  const standardPrice = calculateStandardPrice(variants, priceOption || [])
+
+  // Calculate shipping cost with a default fallback
+  const shippingCost = shippingOptions[selectedCountry] ?? 10
 
   return (
     <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">
@@ -36,13 +49,19 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         {variants.map((variant, index) => (
           <div key={index} className="flex justify-between items-center p-2">
-            <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
-            <p className="text-sm text-gray-500">{`Couleur : ${variant.color}`}</p>
+            {variant.image && (
+              <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
+            )}
+            <p className="text-sm text-gray-500">{`${variant.color}`}</p>
             <h3 className="text-md text-black">{`x${variant.quantity}`}</h3>
           </div>
         ))}
         <div className="flex justify-between items-center mt-4">
-          <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} shippingPrice={shippingCost} />
+          <PriceDisplay
+            totalPrice={totalPrice + shippingCost}
+            standardPrice={standardPrice}
+            shippingPrice={shippingCost}
+          />
         </div>
       </div>
     </div>

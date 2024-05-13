@@ -1,5 +1,3 @@
-import 'yet-another-react-lightbox/styles.css'
-
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -9,23 +7,46 @@ import PriceDisplay from '../components/cart/price/PriceDisplay'
 import { PriceOptionModal } from '../components/cart/price/PriceOptionModal'
 import { NumberInput } from '../components/common/inputs/NumberInput'
 import { Loader } from '../components/common/Loader'
-import { ColorImage, Product } from '../components/types/types'
+import { BatchItem, Product } from '../components/types/types'
 import { useCartContext } from '../context/CartContext'
 import useSingleDoc from '../hooks/useSingleDoc'
-import { calculateStandardPrice, calculateTotalPrice } from '../utils/prices'
+import { calculatePriceByColor, calculateStandardPrice, calculateTotalPrice } from '../utils/prices'
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [batchItems, setBatchItems] = useState<ColorImage[]>([])
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([])
   const [openModal, setOpenModal] = useState(false)
   const [mainImage, setMainImage] = useState<string>('')
   const [defaultQuantity, setDefaultQuantity] = useState<number>(0)
+  const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [standardPrice, setStandardPrice] = useState<number>(0)
   const navigate = useNavigate()
 
   const { addBatch } = useCartContext()
 
   const product: Product = useSingleDoc('products', id)
+
+  const productHasColorPrice =
+    product?.color_images &&
+    product.color_images.length > 0 &&
+    product.color_images[0].price !== null &&
+    product.color_images[0].price !== 0
+
+  console.log('BATCH ITEMS', batchItems)
+  console.log('PRICES', totalPrice, standardPrice, 'HASCOLOR', productHasColorPrice)
+
+  useEffect(() => {
+    if (product) {
+      if (productHasColorPrice) {
+        setTotalPrice(calculatePriceByColor(batchItems, product.color_images))
+      }
+      if (product.priceOptions && product.priceOptions.length > 0) {
+        setTotalPrice(calculateTotalPrice(batchItems, product.priceOptions || []))
+      }
+      setStandardPrice(calculateStandardPrice(batchItems, product.priceOptions || []))
+    }
+  }, [batchItems, product])
 
   useEffect(() => {
     if (product) {
@@ -41,15 +62,14 @@ const ProductDetail: React.FC = () => {
   }
 
   const handleColorQuantityChange = (color: string, quantity: number) => {
-    batchItems.forEach((item) => {
-      if (item.color === color) {
-        if (quantity > item.availableQuantity) {
-          toast.error(`Il ne reste que ${item.availableQuantity} exemplaires de ${product.name} en ${color}`)
-          return
+    setBatchItems(
+      batchItems.map((item) => {
+        if (item.color === color) {
+          return { ...item, quantity }
         }
-      }
-    })
-    setBatchItems(batchItems.map((item) => (item.color === color ? { ...item, quantity } : item)))
+        return item
+      })
+    )
   }
 
   const handleBuyClick = () => {
@@ -66,10 +86,7 @@ const ProductDetail: React.FC = () => {
       return
     }
 
-    const totalPrice = calculateTotalPrice(batchItems, product.priceOptions)
-    const standardPrice = calculateStandardPrice(batchItems, product.priceOptions)
-
-    if (batchItems.length === 0 && defaultQuantity <= 0) {
+    if ((batchItems.length === 0 && defaultQuantity <= 0) || totalPrice <= 0) {
       toast.error("Veuillez spécifier une quantité avant d'ajouter au panier.")
       return
     }
@@ -77,26 +94,13 @@ const ProductDetail: React.FC = () => {
     const itemToAdd = {
       id: product.id,
       name: product.name,
-      variants:
-        batchItems.length > 0
-          ? batchItems
-              .filter((item) => item.quantity > 0)
-              .map((item) => ({
-                color: item.color,
-                image: item.image,
-                quantity: item.quantity
-              }))
-          : [
-              {
-                color: 'Default',
-                image: product.main_image,
-                quantity: defaultQuantity
-              }
-            ],
+      variants: batchItems.filter((item) => item.quantity > 0),
       ref: product.ref,
       priceOption: product.priceOptions,
+      color_images: product.color_images,
       shippingOptions: product.shippingOptions
     }
+
     addBatch([itemToAdd])
     setBatchItems(batchItems.map((item) => ({ ...item, quantity: 0 }))) // Reset quantities after adding to cart
     if (batchItems.length === 0) {
@@ -106,18 +110,12 @@ const ProductDetail: React.FC = () => {
     navigate('/')
   }
 
-  const handleImageClick = (image: string) => {
+  const handleImageClick = (image?: string) => {
+    if (!image) {
+      return
+    }
     setMainImage(image)
   }
-
-  const totalPrice =
-    batchItems.length > 0
-      ? calculateTotalPrice(batchItems, product.priceOptions)
-      : calculateTotalPrice([{ ...product, quantity: defaultQuantity }], product.priceOptions)
-  const standardPrice =
-    batchItems.length > 0
-      ? calculateStandardPrice(batchItems, product.priceOptions)
-      : calculateStandardPrice([{ ...product, quantity: defaultQuantity }], product.priceOptions)
 
   return (
     <div className="bg-white text-black relative pb-20">
@@ -141,15 +139,25 @@ const ProductDetail: React.FC = () => {
             <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded-md">
               <div className="flex justify-between w-full">
                 <h1 className="text-3xl font-bold capitalize">{product.name}</h1>
-                <h2 className="text-2xl font-bold">{product.priceOptions[0].price} €</h2>
+                <h2 className="text-2xl font-bold">
+                  {totalPrice > 0
+                    ? `${totalPrice} €`
+                    : product.priceOptions && product.priceOptions.length > 0
+                    ? `${product.priceOptions[0].price} €`
+                    : ''}
+                </h2>
               </div>
-              <button
-                className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
-                onClick={() => setOpenModal(true)}
-              >
-                Voir les options de prix
-              </button>
-              <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
+              {product.priceOptions && product.priceOptions.length > 0 && (
+                <button
+                  className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
+                  onClick={() => setOpenModal(true)}
+                >
+                  Voir les options de prix
+                </button>
+              )}
+              {product.priceOptions && product.priceOptions.length > 0 && (
+                <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
+              )}
             </div>
             {batchItems.length > 0 ? (
               <div>
@@ -161,7 +169,16 @@ const ProductDetail: React.FC = () => {
                     className="cursor-pointer flex flex-row items-center justify-between p-2 bg-gray-100 rounded"
                   >
                     <div className="flex items-center gap-2 cursor-pointer">
-                      <img src={item.image} alt={`Image of ${item.color}`} className="h-16 w-16 rounded-full shadow" />
+                      {item.price && (
+                        <span className="font-semibold rounded-full bg-red-500 p-2 text-white">{item.price} €</span>
+                      )}
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={`Image of ${item.color}`}
+                          className="h-16 w-16 rounded-full shadow"
+                        />
+                      )}
                       <span className="font-semibold">{item.color}</span>
                     </div>
                     <NumberInput

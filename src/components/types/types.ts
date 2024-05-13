@@ -1,6 +1,7 @@
 export interface PriceRow {
   quantity: string
   price: string
+  color?: string // Add this line to handle color-specific pricing
 }
 
 export interface ShippingOptions {
@@ -48,7 +49,7 @@ export interface Product {
   color_images: ColorImage[]
   categories: string[]
   description: string
-  priceOptions: PriceRow[]
+  priceOptions?: PriceRow[]
   published: boolean
   promotion: boolean
   new: boolean
@@ -57,10 +58,15 @@ export interface Product {
   ref: FirestoreRef
 }
 
-interface ColorImage {
+export interface ColorImage {
   color: string
-  image: string
+  image?: string
   availableQuantity: number
+  price?: number
+}
+
+export interface BatchItem extends ColorImage {
+  quantity: number
 }
 
 export interface CartItem {
@@ -69,6 +75,7 @@ export interface CartItem {
   variants: ProductVariant[]
   ref: FirestoreRef
   priceOption: PriceRow[]
+  color_images: ColorImage[]
   shippingOptions: ShippingOptions
 }
 
@@ -82,13 +89,14 @@ export type Country = 'Belgique' | 'Luxembourg' | 'France'
 
 export type Status = 'en attente' | 'en cours de livraison' | 'livré'
 
+export type ProductOrder = {
+  productId: string
+  quantity: number
+  color?: string
+}
 export interface Order {
   userId: string
-  products: Array<{
-    productId: string
-    quantity: number
-    color?: string
-  }>
+  products: ProductOrder[]
   orderDate: Date
   shippingAddress: ShippingAddress
   status?: Status

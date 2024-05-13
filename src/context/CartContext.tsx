@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { toast } from 'react-toastify'
 
 import { CartItem, Country, OrderInfo, ShippingAddress } from '../components/types/types'
-import { calculateTotalPrice } from '../utils/prices'
+import { calculatePriceByColor, calculateTotalPrice } from '../utils/prices'
 import { useAuth } from './AuthContext'
 
 interface CartContextType {
@@ -57,7 +57,12 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart))
 
-    const totalPrice = cart.reduce((acc, item) => acc + calculateTotalPrice(item.variants, item.priceOption), 0)
+    const totalPrice = cart.reduce((acc, item) => {
+      if (item.priceOption?.length > 0) {
+        return acc + calculateTotalPrice(item.variants, item.priceOption)
+      }
+      return acc + calculatePriceByColor(item.variants, item.color_images)
+    }, 0)
     setTotalPrice(totalPrice)
 
     const orderInfo: OrderInfo = {
