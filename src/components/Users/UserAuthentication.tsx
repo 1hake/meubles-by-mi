@@ -2,7 +2,7 @@ import React from 'react'
 
 const UserAuthentication: React.FC = () => {
   return (
-    <div className="my-4 p-4 bg-gray-100 rounded-lg text-center shadow-md flex flex-col justify-center">
+    <div className="my-4 p-4 bg-gray-100 rounded-lg text-center flex flex-col justify-center">
       <p className="font-semibold text-gray-800">
         Veuillez vous connecter pour finaliser votre commande. Si vous n'avez pas de compte, inscrivez-vous.
       </p>

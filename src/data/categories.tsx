@@ -48,13 +48,6 @@ export default [
   },
   {
     title: 'Fauteuils microfibre',
-
-    background:
-      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
-    navigation: 'fauteuil-microfibre'
-  },
-  {
-    title: 'Fauteuils microfibre',
     background:
       'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
     navigation: 'fauteuil-microfibre'

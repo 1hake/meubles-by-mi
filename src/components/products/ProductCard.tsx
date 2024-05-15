@@ -47,7 +47,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-700 cursor-pointer flex flex-col justify-between"
+      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-900 cursor-pointer flex flex-col justify-between"
     >
       <img src={src} alt={name} className="w-full h-auto object-cover mb-2" />
       <div className="p-4 flex flex-col gap-2">
@@ -62,7 +62,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
         <p className="text-gray-700 text-sm mb-2">{truncatedDescription || 'Aucune description disponible.'}</p>
       </div>
-      <div className="px-4 py-2 mt-auto flex justify-end gap-3 bg-gray-700">
+      <div className="px-4 py-2 mt-auto flex justify-end gap-3 bg-gray-900">
         {colorNb > 0 && (
           <div className="bg-white flex justify-center items-center text-gray-700 px-2 py-1 text-xs tracking-wide rounded-3xl">
             {colorNb} autres...
