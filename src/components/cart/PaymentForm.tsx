@@ -16,7 +16,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret }) => {
   const elements = useElements()
   const navigate = useNavigate()
   const { addOrder } = useOrders()
-  const { setCart, orderInfo } = useCartContext()
+  const { setCart, orderInfo, shippingAddress, totalPrice } = useCartContext()
+  console.log('🚀 ~ shippingAddress:', shippingAddress)
+  console.log('🚀 ~ orderInfo:', orderInfo)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -37,7 +39,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret }) => {
     } else {
       console.log('Payment successful:', result.paymentIntent, orderInfo)
       toast.success('Paiement effectué avec succès')
-      await addOrder({ ...orderInfo, orderDate: new Date(), status: 'en attente' })
+      await addOrder({ ...orderInfo, orderDate: new Date(), status: 'en attente', shippingAddress, price: totalPrice })
       navigate('/confirmation')
     }
   }

@@ -100,4 +100,5 @@ export interface Order {
   orderDate: Date
   shippingAddress: ShippingAddress
   status?: Status
+  price: number
 }

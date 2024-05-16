@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { useCartContext } from '../../context/CartContext'
-import { calculatePriceByColor, calculateStandardPrice, calculateTotalPrice } from '../../utils/prices'
+import { calculatePriceByColor, calculateTotalPrice } from '../../utils/prices'
 import Button from '../common/Button'
 import { CartItem, ColorImage } from '../types/types'
 
@@ -19,9 +19,6 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
   const totalPrice = hasColorPricing
     ? calculatePriceByColor(variants as ColorImage[], variants as ColorImage[])
     : calculateTotalPrice(variants, priceOption || [])
-
-  const standardPrice = calculateStandardPrice(variants, priceOption || [])
-  console.log('🚀 ~ CartItemBatchDisplay ~ standardPrice:', standardPrice)
 
   const shippingCost = shippingOptions ? shippingOptions[selectedCountry] || 10 : 10
 
@@ -49,16 +46,6 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
           {totalPrice !== null && (
             <p className="text-4xl font-bold">
               <span className="text-4xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
-            </p>
-          )}
-          {standardPrice < totalPrice && (
-            <p className="text-xl font-bold">
-              <span
-                className="text-2xl whitespace-nowrap mr-2 text-red-500 line-through
-"
-              >
-                {standardPrice.toFixed(2)} €
-              </span>
             </p>
           )}
           {shippingCost && <p className="text-sm text-gray-500">Frais de port: {shippingCost.toFixed(2)} €</p>}

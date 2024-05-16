@@ -287,6 +287,10 @@ const ordersCollection = buildCollection<Order>({
         }
       }
     }),
+    price: buildProperty({
+      dataType: 'number',
+      validation: { required: true }
+    }),
     status: buildProperty({
       dataType: 'string',
       enumValues: {

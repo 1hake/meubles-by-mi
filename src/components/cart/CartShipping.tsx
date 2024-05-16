@@ -18,6 +18,7 @@ const CartShipping: React.FC = () => {
     shippingError,
     setShippingError
   } = useCartContext()
+  console.log('🚀 ~ shippingAddress:', shippingAddress)
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
