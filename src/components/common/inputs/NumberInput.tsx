@@ -17,7 +17,7 @@ export const NumberInput = ({ value, onChange }) => {
   return (
     <div className="w-32 py-2 px-3 bg-white border-2 border-black rounded-lg shadow-sm dark:bg-slate-800 dark:border-gray-700">
       <div className="flex justify-between items-center">
-        <Button onClick={handleDecrement} disabled={value === 0} size="small">
+        <Button onClick={handleDecrement} disabled={value === 0} size="small" color="light">
           <svg
             className="w-4 h-4"
             fill="none"
