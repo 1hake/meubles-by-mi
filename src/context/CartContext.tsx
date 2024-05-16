@@ -92,7 +92,10 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const allItemsShippable = useMemo(() => {
     return cart.every(
-      (item) => item.shippingOptions[selectedCountry] !== null && item.shippingOptions[selectedCountry] !== undefined
+      (item) =>
+        item.shippingOptions &&
+        item.shippingOptions[selectedCountry] !== null &&
+        item.shippingOptions[selectedCountry] !== undefined
     )
   }, [cart, selectedCountry])
 

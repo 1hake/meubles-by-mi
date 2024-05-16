@@ -10,8 +10,8 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({ totalPrice, standardPrice, 
   return (
     <div className="flex flex-col space-y-2">
       {totalPrice !== null && (
-        <p className="text-xl font-bold">
-          <span className="text-2xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
+        <p className="text-4xl font-bold">
+          <span className="text-4xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
         </p>
       )}
       {standardPrice !== undefined && standardPrice > 0 && standardPrice < totalPrice && (

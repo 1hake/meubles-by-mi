@@ -49,9 +49,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
       onClick={onClick}
       className="bg-white rounded-lg overflow-hidden border-2 border-gray-900 cursor-pointer flex flex-col justify-between"
     >
-      <img src={src} alt={name} className="w-full h-auto object-cover mb-2" />
+      <img src={src} alt={name} className="md:w-full md:h-48 h-full w-full object-cover mb-2" />
       <div className="p-4 flex flex-col gap-2">
-        <h3 className="text-xl text-gray-700 font-semibold mb-1">{name}</h3>
+        <h3 className="text-3xl lg:text-lg uppercase text-gray-700 font-bold mb-1">{name}</h3>
         <div className="flex items-center space-x-2">
           {isNew && (
             <span className="bg-yellow-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">
@@ -60,7 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
           {promotion && <PromotionTag percentage={promotion} />}
         </div>
-        <p className="text-gray-700 text-sm mb-2">{truncatedDescription || 'Aucune description disponible.'}</p>
+        {truncatedDescription && <p className="text-gray-700 text-sm mb-2">{truncatedDescription}</p>}
       </div>
       <div className="px-4 py-2 mt-auto flex justify-end gap-3 bg-gray-900">
         {colorNb > 0 && (

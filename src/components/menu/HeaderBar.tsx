@@ -8,17 +8,19 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext'
 import { useCartContext } from '../../context/CartContext'
 import { categories } from '../../data/categories'
 import CartBadge from '../cart/CartBadge'
+import Button from '../common/Button'
 
 export const HeaderBar = () => {
   const { cart } = useCartContext()
   const { currentUser, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -50,16 +52,16 @@ export const HeaderBar = () => {
         <Link to="/">
           <div alt="logo" className="h-24 bg-light-logo bg-no-repeat bg-center bg-contain w-48"></div>
         </Link>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           {currentUser ? (
             <>
-              <Link to="/profile" className="hidden lg:inline mr-6">
+              <Button onClick={() => navigate('/profile')} color="light" size="small" className="hidden lg:flex">
                 Mon Profil
-              </Link>
-              <button onClick={handleLogout} className="hidden lg:flex items-center mr-6">
+              </Button>
+              <Button onClick={handleLogout} className="hidden lg:flex items-center mr-6" color="light" size="small">
                 <FontAwesomeIcon icon={faSignOutAlt} size="lg" className="mr-2" />
                 Déconnexion
-              </button>
+              </Button>
             </>
           ) : (
             <>

@@ -11,12 +11,12 @@ interface Props {
 }
 
 const Button = ({ children, onClick, disabled = false, color = 'light', size = 'large', className }: Props) => {
-  const baseClasses = 'border-2 rounded-lg text-lg cursor-pointer'
+  const baseClasses = 'border-2 rounded-lg cursor-pointer'
   const lightClasses = 'bg-white text-black border-black'
   const darkClasses = 'bg-black text-white border-white'
   const disabledClasses = 'opacity-50 cursor-not-allowed'
 
-  const sizeClasses = size === 'small' ? 'px-2 py-1' : 'px-4 py-2'
+  const sizeClasses = size === 'small' ? 'px-2 py-1 text-sm' : 'px-4 py-2 text-lg'
   const shadowClass =
     size === 'small'
       ? color === 'light'

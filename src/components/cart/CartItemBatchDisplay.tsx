@@ -13,23 +13,18 @@ interface CartItemProps {
 const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
   const { selectedCountry } = useCartContext()
   const { id, name, variants, shippingOptions, priceOption } = item
-  console.log('🚀 ~ CartItemBatchDisplay ~ variants:', variants)
+  console.log('🚀 ~ CartItemBatchDisplay ~ shippingOptions:', shippingOptions)
 
-  // Determine if we need to calculate by color
   const hasColorPricing = variants.some((variant) => 'price' in variant)
-  console.log('🚀 ~ CartItemBatchDisplay ~ hasColorPricing:', hasColorPricing)
 
-  // Calculate total price based on whether we use color pricing or standard price options
   const totalPrice = hasColorPricing
     ? calculatePriceByColor(variants as ColorImage[], variants as ColorImage[])
     : calculateTotalPrice(variants, priceOption || [])
   console.log('🚀 ~ CartItemBatchDisplay ~ totalPrice:', totalPrice)
 
-  // Standard price as a fallback when no specific pricing is provided
   const standardPrice = calculateStandardPrice(variants, priceOption || [])
 
-  // Calculate shipping cost with a default fallback
-  const shippingCost = shippingOptions[selectedCountry] ?? 10
+  const shippingCost = shippingOptions ? shippingOptions[selectedCountry] || 10 : 10
 
   return (
     <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">

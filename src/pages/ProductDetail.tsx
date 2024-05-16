@@ -19,6 +19,7 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [batchItems, setBatchItems] = useState<BatchItem[]>([])
+  console.log('🚀 ~ batchItems:', batchItems)
   const [openModal, setOpenModal] = useState(false)
   const [mainImage, setMainImage] = useState<string>('')
   const [defaultQuantity, setDefaultQuantity] = useState<number>(0)
@@ -29,6 +30,7 @@ const ProductDetail: React.FC = () => {
   const { addBatch } = useCartContext()
 
   const product: Product = useSingleDoc('products', id)
+  console.log('🚀 ~ product:', product)
 
   const productHasShippingOptions = product?.shippingOptions && product.shippingOptions.France > 0
 

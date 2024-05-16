@@ -34,7 +34,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
-            price: elements[index].priceOptions?.[0].price || elements[index].color_images?.[0].price || 0,
+            price: elements[index]?.priceOptions?.[0]?.price || elements[index].color_images?.[0].price || 0,
             published: elements[index].published,
             promotion: elements[index].promotion,
             new: elements[index].new,
@@ -60,7 +60,7 @@ export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
         /> */}
-        <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <main className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {images.map((image, index) => (
             <ProductCard
               key={index}
