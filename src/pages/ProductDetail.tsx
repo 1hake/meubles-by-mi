@@ -1,5 +1,7 @@
 import 'yet-another-react-lightbox/styles.css'
 
+import { faTruck } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -123,22 +125,23 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="bg-white text-black relative pb-20">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 p-4 mb-8">
         <div className="flex flex-col col-span-4 items-center relative">
           <img
             onClick={() => setLightboxOpen(true)}
             src={mainImage}
             alt={product.name}
-            className="h-full rounded-lg shadow-md"
+            className=" rounded-lg shadow-md"
           />
           <Button className="absolute bottom-4" color="light" onClick={() => setLightboxOpen(true)}>
             Voir en grand format
           </Button>
         </div>
-        <div className="col-span-4 lg:col-span-3 md:col-span-3">
+        <div className="col-span-4 lg:col-span-3">
           {!productHasShippingOptions && (
             <div className="flex justify-center  items-center  text-white w-full">
               <div className="-z-1 flex justify-center p-3 items-center bg-blue-500 text-white w-[90%] rounded-t-xl">
+                <FontAwesomeIcon icon={faTruck} className="mr-2" size="1x" />
                 <span className="font-bold">LIVRAISON GRATUITE</span>
               </div>
             </div>
@@ -202,7 +205,7 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
       {totalPrice > 0 && (
-        <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between lg:justify-center lg:gap-2 items-center shadow-lg z-50 mt-8">
+        <div className="h-32 md:h-24 fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between lg:justify-center lg:gap-2 items-center shadow-lg z-50 mt-8">
           <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} />
           <Button color="dark" onClick={handleBuyClick}>
             Ajouter le lot au panier

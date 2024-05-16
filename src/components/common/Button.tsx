@@ -8,9 +8,18 @@ interface Props {
   disabled?: boolean
   color?: 'light' | 'dark'
   size?: 'small' | 'large'
+  type?: 'button' | 'submit' | 'reset'
 }
 
-const Button = ({ children, onClick, disabled = false, color = 'light', size = 'large', className }: Props) => {
+const Button = ({
+  children,
+  onClick,
+  disabled = false,
+  color = 'light',
+  size = 'large',
+  className,
+  type = 'button'
+}: Props) => {
   const baseClasses = 'border-2 rounded-lg cursor-pointer'
   const lightClasses = 'bg-white text-black border-black'
   const darkClasses = 'bg-black text-white border-white'
@@ -33,7 +42,7 @@ const Button = ({ children, onClick, disabled = false, color = 'light', size = '
   })
 
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={classes} aria-disabled={disabled}>
+    <button type={type} onClick={onClick} disabled={disabled} className={classes} aria-disabled={disabled}>
       {children}
     </button>
   )

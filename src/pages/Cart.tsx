@@ -19,12 +19,12 @@ const Cart: React.FC = () => {
   }
 
   return (
-    <div className="my-10 p-6 bg-gray-100 rounded-lg">
-      <div className="md:grid md:grid-cols-2 gap-6 gap-y-10 mb-10">
+    <div className="p-6 bg-gray-100 rounded-lg mt-4">
+      <div className="md:grid md:grid-cols-2 gap-6 gap-y-10 mb-36">
         <CartItemList />
         {!currentUser ? <UserAuthentication /> : <CartShipping />}
       </div>
-      <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between items-center shadow-lg z-50 mt-4">
+      <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between items-center shadow-lg z-50 mt-4 h-24 md:h-24">
         <PriceDisplay totalPrice={totalPrice} />
         <Button color="dark" onClick={() => validateAddress()}>
           Passer au paiment

@@ -1,23 +1,21 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import Button from '../common/Button'
 
 const UserAuthentication: React.FC = () => {
+  const navigate = useNavigate()
   return (
-    <div className="my-4 p-4 bg-gray-100 rounded-lg text-center flex flex-col justify-center">
+    <div className="my-4 p-4 bg-gray-100 rounded-lg text-center flex flex-col justify-center gap-y-4">
       <p className="font-semibold text-gray-800">
         Veuillez vous connecter pour finaliser votre commande. Si vous n'avez pas de compte, inscrivez-vous.
       </p>
-      <a
-        href="/signin/redirect"
-        className="mt-2 inline-block text-white bg-black hover:bg-gray-800 font-bold py-2 px-4 rounded"
-      >
+      <Button color="light" onClick={() => navigate('/signin/redirect')}>
         Se connecter
-      </a>
-      <a
-        href="/signup/redirect"
-        className="mt-2 inline-block text-black bg-white hover:bg-gray-300 font-bold py-2 px-4 rounded border border-black"
-      >
+      </Button>
+      <Button color="light" onClick={() => navigate('/signup/redirect')}>
         S'inscrire
-      </a>
+      </Button>
     </div>
   )
 }

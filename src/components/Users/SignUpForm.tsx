@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext'
+import Button from '../common/Button'
 import UserFormFields from './UserFormFields'
 
 interface ShippingAddress {
@@ -47,7 +48,7 @@ export const SignUpForm: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 border-2 border-black rounded-md">
       <form onSubmit={handleSubmit} className="max-w-md mx-auto">
         <h2 className="text-2xl font-bold mb-4">Inscription</h2>
         {error && <div className="mb-4 text-red-500">{error}</div>}
@@ -61,12 +62,9 @@ export const SignUpForm: React.FC = () => {
         />
 
         <div className="flex items-center justify-between">
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
+          <Button type="submit" className="w-full">
             S'inscrire
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -44,7 +44,7 @@ export const HeaderBar = () => {
   }
 
   return (
-    <div id="header" className="bg-white  sticky top-0 z-50 w-screen px-4 py-2">
+    <div id="header" className="bg-white  sticky top-0 z-50 w-screen px-6 py-2">
       <div className="flex items-center justify-between">
         <div className="lg:hidden">
           <FontAwesomeIcon icon={faBars} size="lg" className="cursor-pointer" onClick={toggleMenu} />
@@ -52,7 +52,7 @@ export const HeaderBar = () => {
         <Link to="/">
           <div alt="logo" className="h-24 bg-light-logo bg-no-repeat bg-center bg-contain w-48"></div>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ">
           {currentUser ? (
             <>
               <Button onClick={() => navigate('/profile')} color="light" size="small" className="hidden lg:flex">
@@ -76,7 +76,7 @@ export const HeaderBar = () => {
             </>
           )}
           <Link to="/cart" className="relative">
-            <FontAwesomeIcon icon={faShoppingCart} size="xl" className="mr-2" />
+            <FontAwesomeIcon icon={faShoppingCart} size="2x" className="" />
             <CartBadge itemCount={cart.length} />
           </Link>
         </div>
