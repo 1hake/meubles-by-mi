@@ -22,7 +22,7 @@ export const ShippingAddressForm = ({
         <h3 className="text-lg font-medium mb-4">Adresse de Livraison</h3>
         <Button
           onClick={fillAddressWithUser}
-          className="btn btn-secondary w-full bg-gray-200 text-black py-2 px-4 rounded-md hover:bg-gray-300 transition duration-150 ease-in-out"
+          className="w-full bg-gray-200 text-black py-2 px-4 rounded-md hover:bg-gray-300 transition duration-150 ease-in-out"
         >
           Remplir avec mes informations
         </Button>

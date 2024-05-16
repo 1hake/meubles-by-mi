@@ -34,7 +34,7 @@ export const NumberInput = ({ value, onChange }) => {
           value={value}
           onChange={(e) => onChange(Math.max(1, parseInt(e.target.value, 10) || 1))} // Prevent non-numeric values and negative values
         />
-        <Button onClick={handleIncrement} size="small">
+        <Button onClick={handleIncrement} size="small" color="light">
           <svg
             className="w-4 h-4"
             fill="none"

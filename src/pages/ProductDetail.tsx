@@ -136,7 +136,7 @@ const ProductDetail: React.FC = () => {
         <div className="col-span-4 lg:col-span-3 md:col-span-3">
           {!productHasShippingOptions && (
             <div className="flex justify-center  items-center  text-white w-full">
-              <div className="flex justify-center p-3 items-center bg-blue-500 text-white w-[90%] rounded-t-xl">
+              <div className="-z-1 flex justify-center p-3 items-center bg-blue-500 text-white w-[90%] rounded-t-xl">
                 <span className="font-bold">LIVRAISON GRATUITE</span>
               </div>
             </div>
