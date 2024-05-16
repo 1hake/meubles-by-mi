@@ -1,3 +1,5 @@
+import 'yet-another-react-lightbox/styles.css'
+
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -5,6 +7,7 @@ import Lightbox from 'yet-another-react-lightbox'
 
 import PriceDisplay from '../components/cart/price/PriceDisplay'
 import { PriceOptionModal } from '../components/cart/price/PriceOptionModal'
+import Button from '../components/common/Button'
 import { NumberInput } from '../components/common/inputs/NumberInput'
 import { Loader } from '../components/common/Loader'
 import { BatchItem, Product } from '../components/types/types'
@@ -34,9 +37,6 @@ const ProductDetail: React.FC = () => {
     product.color_images.length > 0 &&
     product.color_images[0].price !== null &&
     product.color_images[0].price !== 0
-
-  console.log('BATCH ITEMS', batchItems)
-  console.log('PRICES', totalPrice, standardPrice, 'HASCOLOR', productHasColorPrice)
 
   useEffect(() => {
     if (product) {
@@ -129,31 +129,25 @@ const ProductDetail: React.FC = () => {
             alt={product.name}
             className="h-full rounded-lg shadow-md"
           />
-          <button
-            className="absolute bottom-4 bg-black text-white text-sm font-bold uppercase px-6 py-2 rounded shadow hover:bg-gray-900"
-            onClick={() => setLightboxOpen(true)}
-          >
+          <Button className="absolute bottom-4" color="light" onClick={() => setLightboxOpen(true)}>
             Voir en grand format
-          </button>
+          </Button>
         </div>
-        <div className="col-span-3 lg:col-span-3 md:col-span-2">
+        <div className="col-span-4 lg:col-span-3 md:col-span-3">
+          {!productHasShippingOptions && (
+            <div className="flex justify-center  items-center  text-white w-full">
+              <div className="flex justify-center p-3 items-center bg-blue-500 text-white w-[90%] rounded-t-xl">
+                <span className="font-bold">LIVRAISON GRATUITE</span>
+              </div>
+            </div>
+          )}
           <div className="border-2 border-black p-4 rounded bg-gray-100 h-full">
-            <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded-md">
+            <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded-md gap-y-2">
               <div className="flex justify-between w-full">
                 <h1 className="text-3xl font-bold capitalize">{product.name}</h1>
               </div>
-              {!productHasShippingOptions && (
-                <div className="w-fit my-2 p-2 rounded-full bg-green-300 text-black-500 font-semibold">
-                  LIVRAISON GRATUITE
-                </div>
-              )}
               {product.priceOptions && product.priceOptions.length > 0 && (
-                <button
-                  className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
-                  onClick={() => setOpenModal(true)}
-                >
-                  Voir les options de prix
-                </button>
+                <Button onClick={() => setOpenModal(true)}>Voir les options de prix</Button>
               )}
               {product.priceOptions && product.priceOptions.length > 0 && (
                 <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
@@ -166,12 +160,10 @@ const ProductDetail: React.FC = () => {
                   <div
                     onClick={() => handleImageClick(item.image)}
                     key={index}
-                    className="cursor-pointer flex flex-row items-center justify-between p-2 bg-gray-100 rounded"
+                    className="cursor-pointer flex items-center justify-between p-2 bg-gray-100 rounded"
                   >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      {item.price && (
-                        <span className="font-semibold rounded-full bg-red-500 p-2 text-white">{item.price} €</span>
-                      )}
+                    <div className="flex items-center gap-2 cursor-pointer flex-col lg:flex-row md:flex-row">
+                      {item.price && <span className="font-semibold text-xl text-black">{item.price} €</span>}
                       {item.image && (
                         <img
                           src={item.image}
@@ -210,12 +202,9 @@ const ProductDetail: React.FC = () => {
       {totalPrice > 0 && (
         <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between lg:justify-center lg:gap-2 items-center shadow-lg z-50 mt-8">
           <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} />
-          <button
-            className="bg-white text-black font-medium uppercase px-2 py-3 rounded shadow hover:bg-gray-300"
-            onClick={handleBuyClick}
-          >
+          <Button color="dark" onClick={handleBuyClick}>
             Ajouter le lot au panier
-          </button>
+          </Button>
         </div>
       )}
       <Lightbox

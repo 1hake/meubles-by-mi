@@ -1,6 +1,8 @@
 import { Dialog, Transition } from '@headlessui/react'
 import React, { Fragment } from 'react'
 
+import Button from './Button'
+
 interface Props {
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
@@ -40,12 +42,9 @@ export default function MyModal({ isOpen, setIsOpen, children }: Props) {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white  text-left align-middle shadow-xl transition-all">
-                  <button
-                    onClick={closeModal}
-                    className="absolute top-3 right-3 rounded-full p-1.5 text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  >
+                  <Button onClick={closeModal} className="absolute top-3 right-3">
                     Fermer
-                  </button>
+                  </Button>
                   {children}
                 </Dialog.Panel>
               </Transition.Child>

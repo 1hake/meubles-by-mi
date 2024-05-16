@@ -47,7 +47,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-900 cursor-pointer flex flex-col justify-between"
+      className="bg-white rounded-lg overflow-hidden border-2 border-gray-900 cursor-pointer flex flex-col justify-between"
     >
       <img src={src} alt={name} className="w-full h-auto object-cover mb-2" />
       <div className="p-4 flex flex-col gap-2">

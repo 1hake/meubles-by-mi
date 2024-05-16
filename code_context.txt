@@ -1,0 +1,3959 @@
+// File: src/admin/Admin.tsx
+import { Authenticator, FirebaseCMSApp, buildCollection, buildProperty } from '@camberi/firecms'
+import { User as FirebaseUser } from 'firebase/auth'
+import { useCallback } from 'react'
+
+import { Order, Product } from '../components/types/types'
+import { categories } from '../data/categories'
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAexrhrIjr9t8_jxNz7nT3Ft9pmA2fg67s',
+  authDomain: 'meublesbymi.firebaseapp.com',
+  projectId: 'meublesbymi',
+  storageBucket: 'meublesbymi.appspot.com',
+  messagingSenderId: '971133831930',
+  appId: '1:971133831930:web:fd4c71b237e8d354be5743',
+  measurementId: 'G-ZXSJP8T8SH'
+}
+
+const locales = {
+  'en-US': 'English (United States)',
+  'es-ES': 'Spanish (Spain)',
+  'de-DE': 'German'
+}
+
+const productsCollection = buildCollection<Product>({
+  name: 'Products',
+  path: 'products',
+  permissions: ({ authController }) => ({
+    edit: true,
+    create: true,
+    delete: true
+  }),
+  properties: {
+    name: buildProperty({
+      name: 'Nom',
+      dataType: 'string',
+      validation: { required: true }
+    }),
+    main_image: buildProperty({
+      name: 'Image Principale',
+      dataType: 'string',
+      storage: {
+        storagePath: 'products',
+        acceptedFiles: ['image/*']
+      }
+    }),
+    related_images: buildProperty({
+      name: 'Images associées',
+      dataType: 'array',
+      of: {
+        dataType: 'string',
+        storage: {
+          storagePath: 'products',
+          acceptedFiles: ['image/*']
+        }
+      }
+    }),
+    color_images: buildProperty({
+      name: 'Images par couleur',
+      dataType: 'array',
+      of: {
+        dataType: 'map',
+        properties: {
+          color: buildProperty({
+            name: 'Couleur',
+            dataType: 'string',
+            validation: { required: true },
+            description: 'Sélectionnez la couleur/option représentée par cette image'
+          }),
+          image: buildProperty({
+            name: 'Image',
+            dataType: 'string',
+            storage: {
+              storagePath: 'product_colors',
+              acceptedFiles: ['image/*']
+            },
+            description: "Téléchargez l'image représentant le produit dans cette couleur/option spécifique"
+          }),
+          availableQuantity: buildProperty({
+            name: 'Quantité disponible',
+            dataType: 'number',
+            validation: { required: true },
+            description: 'Quantité disponible pour cette couleur/option'
+          }),
+          price: buildProperty({
+            name: 'Prix',
+            dataType: 'number',
+            validation: { required: false },
+            description: 'Prix du produit dans cette couleur/option'
+          })
+        }
+      },
+      description: 'Associez chaque couleur/option de produit à une image spécifique.'
+    }),
+    categories: buildProperty({
+      name: 'Catégories',
+      dataType: 'array',
+      of: {
+        dataType: 'string',
+        enumValues: categories
+      }
+    }),
+    description: buildProperty({
+      name: 'Description',
+      dataType: 'string'
+    }),
+    price: buildProperty({
+      name: 'Prix',
+      dataType: 'number',
+      validation: { min: 0 }
+    }),
+    published: buildProperty({
+      name: 'Publié',
+      dataType: 'boolean'
+    }),
+    promotion: buildProperty({
+      name: 'Promotion',
+      dataType: 'boolean'
+    }),
+    new: buildProperty({
+      name: 'Nouveautés',
+      dataType: 'boolean'
+    }),
+    facebookProductUrl: buildProperty({
+      name: 'Lien Facebook',
+      dataType: 'string'
+    }),
+    priceOptions: buildProperty({
+      name: 'Options de prix',
+      dataType: 'array',
+      of: {
+        dataType: 'map',
+        properties: {
+          quantity: buildProperty({
+            name: 'Quantité',
+            dataType: 'string',
+            validation: { required: true }
+          }),
+          price: buildProperty({
+            name: 'Prix',
+            dataType: 'string',
+            validation: { required: true }
+          })
+        }
+      }
+    }),
+    shippingOptions: buildProperty({
+      name: 'Options de livraison',
+      dataType: 'map',
+      properties: {
+        Belgique: buildProperty({
+          name: 'Belgique',
+          dataType: 'number',
+          validation: { required: false },
+          description: 'Frais de livraison pour la Belgique, laissez vide si non disponible'
+        }),
+        Luxembourg: buildProperty({
+          name: 'Luxembourg',
+          dataType: 'number',
+          validation: { required: false },
+          description: 'Frais de livraison pour le Luxembourg, laissez vide si non disponible'
+        }),
+        France: buildProperty({
+          name: 'France',
+          dataType: 'number',
+          validation: { required: false },
+          description: 'Frais de livraison pour la France, laissez vide si non disponible'
+        })
+      }
+    }),
+    orderDate: buildProperty({
+      dataType: 'date',
+      validation: { required: false }
+    })
+  }
+})
+
+interface User {
+  email: string
+  passwordHash: string
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+}
+
+const usersCollection = buildCollection<User>({
+  name: 'Users',
+  path: 'users',
+  permissions: ({ authController, user }) => ({
+    edit: true,
+    create: true,
+    delete: true
+  }),
+  properties: {
+    email: buildProperty({
+      name: 'Email',
+      dataType: 'string',
+      validation: { required: true, email: true }
+    }),
+    passwordHash: buildProperty({
+      name: 'Mot de passe',
+      dataType: 'string',
+      validation: { required: true },
+      description: "Hash du mot de passe pour la sécurité de l'utilisateur"
+    }),
+    fullName: buildProperty({
+      name: 'Nom Complet',
+      dataType: 'string',
+      validation: { required: true }
+    }),
+    address: buildProperty({
+      name: 'Adresse',
+      dataType: 'string',
+      validation: { required: true }
+    }),
+    city: buildProperty({
+      name: 'Ville',
+      dataType: 'string',
+      validation: { required: true }
+    }),
+    postalCode: buildProperty({
+      name: 'Code Postal',
+      dataType: 'string',
+      validation: { required: true }
+    }),
+    country: buildProperty({
+      name: 'Pays',
+      dataType: 'string',
+      validation: { required: true }
+    })
+  }
+})
+
+const ordersCollection = buildCollection<Order>({
+  name: 'Orders',
+  path: 'orders',
+  permissions: {
+    create: true,
+    edit: true,
+    delete: true
+  },
+  properties: {
+    userId: buildProperty({
+      name: 'userId',
+      dataType: 'string'
+    }),
+    products: buildProperty({
+      dataType: 'array',
+      of: {
+        dataType: 'map',
+        properties: {
+          productId: {
+            dataType: 'reference',
+            path: 'products'
+          },
+          quantity: {
+            dataType: 'number'
+          },
+          color: {
+            dataType: 'string'
+          }
+        }
+      }
+    }),
+    orderDate: buildProperty({
+      dataType: 'date',
+      validation: { required: true }
+    }),
+    shippingAddress: buildProperty({
+      dataType: 'map',
+      properties: {
+        fullName: {
+          dataType: 'string'
+        },
+        address: {
+          dataType: 'string'
+        },
+        city: {
+          dataType: 'string'
+        },
+        postalCode: {
+          dataType: 'string'
+        },
+        country: {
+          dataType: 'string'
+        }
+      }
+    }),
+    status: buildProperty({
+      dataType: 'string',
+      enumValues: {
+        'en attente': 'en attente',
+        'en cours de livraison': 'en cours de livraison',
+        livré: 'livré'
+      }
+    })
+  }
+})
+
+export default function Admin() {
+  const myAuthenticator: Authenticator<FirebaseUser> = useCallback(async ({ user, authController }) => {
+    if (user?.email?.includes('flanders')) {
+      throw Error('Stupid Flanders!')
+    }
+
+    console.log('Allowing access to', user?.email)
+    const sampleUserRoles = await Promise.resolve(['admin'])
+    authController.setExtra(sampleUserRoles)
+
+    return true
+  }, [])
+
+  return (
+    <FirebaseCMSApp
+      name={'My Online Shop'}
+      authentication={myAuthenticator}
+      collections={[productsCollection, ordersCollection, usersCollection]}
+      firebaseConfig={firebaseConfig} // Make sure to define firebaseConfig
+    />
+  )
+}
+
+// File: src/components/FilterBar.tsx
+import React from 'react'
+
+import { useFilter } from '../hooks/useFilters'
+
+const FilterBar = ({}) => {
+  const { selectedCategory, sortByPrice, sortOrder, setSelectedCategory, setSortByPrice, setSortOrder } = useFilter()
+  return (
+    <div className="flex justify-end mb-2">
+      <label htmlFor="sortOrder" className="ml-4 mr-2">
+        Trier par
+      </label>
+      <select
+        id="sortOrder"
+        onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+        value={sortOrder}
+        className="px-2 py-1 border border-gray-300 rounded"
+      >
+        <option value="asc">Prix croissant</option>
+        <option value="desc">Prix décroissant</option>
+        <option value="asc">Plus récent</option>
+      </select>
+    </div>
+  )
+}
+
+export default FilterBar
+
+// File: src/components/HeroSection.tsx
+import { Link } from 'react-router-dom'
+
+export const HeroSection = () => {
+  return (
+    <div id="hero" className="flex items-center justify-center flex-col mb-12 texte-center">
+      <div className="text-center">
+        <Link to="/">
+          <div alt="logo" className="h-96 bg-light-logo  bg-no-repeat bg-center bg-contain w-96"></div>
+        </Link>
+      </div>
+      <h1>Des meubles de qualité moins chers</h1>
+    </div>
+  )
+}
+
+// File: src/components/OldCart.tsx
+import React, { useMemo, useState } from 'react'
+
+import { useAuth } from '../context/AuthContext'
+import { useCartContext } from '../context/CartContext'
+import CartItem from './CartItem'
+import CartPayment from './CartPayment'
+import EmptyCart from './EmptyCart'
+import { calculateCartPrice } from './priceCalcutaions/prices'
+import { ShippingAddressForm } from './ShippingAddressForm'
+import { Country } from './types/types'
+
+interface CartProps {}
+
+const Cart: React.FC<CartProps> = () => {
+  const { cart, removeBatch, calculateTotal } = useCartContext()
+  console.log('🚀 ~ cart:', cart)
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+  const [selectedCountry, setSelectedCountry] = useState<Country>('France')
+  const { currentUser } = useAuth()
+  console.log('🚀 ~ currentUser:', currentUser)
+
+  const [addressCompleted, setAddressCompleted] = useState(false)
+  const [shippingError, setShippingError] = useState('')
+
+  const allItemsShippable = useMemo(() => {
+    return cart.every(
+      (item) => item.shippingOptions[selectedCountry] !== null && item.shippingOptions[selectedCountry] !== undefined
+    )
+  }, [cart, selectedCountry])
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
+  }
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCountry(e.target.value)
+  }
+
+  const handleAddressSubmit = () => {
+    if (!allItemsShippable) {
+      setShippingError(
+        'Un ou plusieurs articles dans votre panier ne peuvent pas être livrés dans votre pays sélectionné.'
+      )
+      return
+    }
+
+    const { fullName, address, city, postalCode } = shippingAddress
+    if (fullName && address && city && postalCode) {
+      setAddressCompleted(true)
+      setShippingError('') // Clear the error message on successful validation
+    }
+  }
+
+  const orderInfo = {
+    userId: currentUser?.id,
+    products: cart.map((item) => ({ productId: item.ref, quantity: item.quantity, color: item.color })),
+    shippingAddress: {
+      ...shippingAddress,
+      country: selectedCountry
+    },
+    status: 'en attente'
+  }
+
+  const totalPrice = calculateCartPrice(cart, selectedCountry)
+  console.log('🚀 ~ totalPrice:', totalPrice)
+
+  if (cart.length === 0) {
+    return <EmptyCart />
+  }
+
+  return (
+    <div className="container mx-auto my-10 p-6 bg-white">
+      <div className="md:grid md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold text-center">Votre Panier</h2>
+          {cart.map((item) => (
+            <CartItem
+              key={item.id}
+              item={item}
+              selectedCountry={selectedCountry}
+              onRemove={() => removeBatch(item.id)}
+            />
+          ))}
+          <div>
+            <label htmlFor="country" className="text-sm font-semibold text-gray-900">
+              Choisissez votre pays:
+            </label>
+            <select
+              id="country"
+              value={selectedCountry}
+              onChange={handleCountryChange}
+              className="mt-1 block w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            >
+              {['France', 'Belgique', 'Luxembourg'].map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+            {!allItemsShippable && (
+              <p className="text-red-600 font-semibold mt-2">Livraison: Non disponible dans votre pays</p>
+            )}
+            <p className="mt-4 mb-4 text-xl font-semibold">Prix Total: {totalPrice.toFixed(2)}€</p>
+          </div>
+        </div>
+        {!currentUser ? (
+          <div className="my-4 p-4 bg-gray-100 rounded-lg text-center shadow-md flex flex-col justify-center">
+            <p className="font-semibold text-gray-800">
+              Veuillez vous connecter pour finaliser votre commande. Si vous n'avez pas de compte, inscrivez-vous.
+            </p>
+            <a
+              href="/signin/redirect"
+              className="mt-2 inline-block text-white bg-black hover:bg-gray-800 font-bold py-2 px-4 rounded"
+            >
+              Se connecter
+            </a>
+            <a
+              href="/signup/redirect"
+              className="mt-2 inline-block text-black bg-white hover:bg-gray-300 font-bold py-2 px-4 rounded border border-black"
+            >
+              S'inscrire
+            </a>
+          </div>
+        ) : addressCompleted ? (
+          <CartPayment totalPrice={totalPrice} orderInfo={orderInfo} />
+        ) : (
+          <ShippingAddressForm
+            fillAddressWithUser={() =>
+              setShippingAddress({
+                fullName: currentUser.fullName,
+                address: currentUser.address,
+                city: currentUser.city,
+                postalCode: currentUser.postalCode
+              })
+            }
+            handleAddressSubmit={handleAddressSubmit}
+            shippingAddress={shippingAddress}
+            handleAddressChange={handleAddressChange}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default Cart
+
+// File: src/components/Users/SignInForm.tsx
+import React, { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { useAuth } from '../../context/AuthContext'
+
+export const SignInForm: React.FC = () => {
+  const { login, currentUser, error } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const navigate = useNavigate()
+  const params = useParams()
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const result = await login(email, password)
+    if (result && !error) {
+      console.log('Login successful:', currentUser)
+      if (params.redirect) {
+        navigate('/cart')
+        return
+      }
+      navigate('/')
+    }
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Connexion</h2>
+        {error && <div className="mb-4 text-red-500">{error}</div>}
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            Mot de passe
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Se connecter
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// File: src/components/Users/SignUpForm.tsx
+import React, { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { useAuth } from '../../context/AuthContext'
+import UserFormFields from './UserFormFields'
+
+interface ShippingAddress {
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+}
+
+interface UserProfile extends ShippingAddress {
+  email: string
+  userId: string
+}
+
+export const SignUpForm: React.FC = () => {
+  const { signup, currentUser, error } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [address, setAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: ''
+  })
+  const navigate = useNavigate()
+  const params = useParams()
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const userInfo = {
+      email,
+      password,
+      ...address
+    }
+    const result = await signup(userInfo)
+    if (params.redirect) {
+      navigate('/cart')
+      return
+    }
+    navigate('/')
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Inscription</h2>
+        {error && <div className="mb-4 text-red-500">{error}</div>}
+        <UserFormFields
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          address={address}
+          setAddress={setAddress}
+        />
+
+        <div className="flex items-center justify-between">
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            S'inscrire
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// File: src/components/Users/StatusTag.tsx
+import React from 'react'
+
+import { Status } from '../types/types'
+
+interface Props {
+  status: Status
+}
+
+export const StatusTag = ({ status }: Props) => {
+  const classes: string[] = []
+
+  if (status === 'en attente') {
+    classes.push('bg-red-400')
+  }
+
+  if (status === 'en cours de livraison') {
+    classes.push('bg-blue-400')
+  }
+
+  if (status === 'livré') {
+    classes.push('bg-green-400')
+  }
+
+  return (
+    <div
+      className={`${classes.join()} flex justify-center text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide`}
+    >
+      {status}
+    </div>
+  )
+}
+
+// File: src/components/Users/UserAuthentication.tsx
+import React from 'react'
+
+const UserAuthentication: React.FC = () => {
+  return (
+    <div className="my-4 p-4 bg-gray-100 rounded-lg text-center flex flex-col justify-center">
+      <p className="font-semibold text-gray-800">
+        Veuillez vous connecter pour finaliser votre commande. Si vous n'avez pas de compte, inscrivez-vous.
+      </p>
+      <a
+        href="/signin/redirect"
+        className="mt-2 inline-block text-white bg-black hover:bg-gray-800 font-bold py-2 px-4 rounded"
+      >
+        Se connecter
+      </a>
+      <a
+        href="/signup/redirect"
+        className="mt-2 inline-block text-black bg-white hover:bg-gray-300 font-bold py-2 px-4 rounded border border-black"
+      >
+        S'inscrire
+      </a>
+    </div>
+  )
+}
+
+export default UserAuthentication
+
+// File: src/components/Users/UserFormFields.tsx
+import React from 'react'
+
+interface UserFormFieldsProps {
+  email: string
+  setEmail: (email: string) => void
+  password: string
+  setPassword: (password: string) => void
+  address: {
+    fullName: string
+    address: string
+    city: string
+    postalCode: string
+    country: string
+  }
+  setAddress: (address: any) => void
+}
+
+const UserFormFields: React.FC<UserFormFieldsProps> = ({
+  email,
+  setEmail,
+  password,
+  setPassword,
+  address,
+  setAddress
+}) => {
+  return (
+    <>
+      <div className="mb-4">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          Mot de passe
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+          Nom Complet
+        </label>
+        <input
+          type="text"
+          id="fullName"
+          name="fullName"
+          value={address.fullName}
+          onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      {/* More fields follow a similar pattern */}
+      <div className="mb-4">
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          Adresse
+        </label>
+        <input
+          type="text"
+          id="address"
+          name="address"
+          value={address.address}
+          onChange={(e) => setAddress({ ...address, address: e.target.value })}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+          Ville
+        </label>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={address.city}
+          onChange={(e) => setAddress({ ...address, city: e.target.value })}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+          Code Postal
+        </label>
+        <input
+          type="text"
+          id="postalCode"
+          name="postalCode"
+          value={address.postalCode}
+          onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+          Pays
+        </label>
+        <input
+          type="text"
+          id="country"
+          name="country"
+          value={address.country}
+          onChange={(e) => setAddress({ ...address, country: e.target.value })}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+    </>
+  )
+}
+
+export default UserFormFields
+
+// File: src/components/Users/UserOrders.tsx
+import React, { useEffect } from 'react'
+
+import { useAuth } from '../../context/AuthContext'
+import useOrders from '../../hooks/useOrders'
+import { Loader } from '../common/Loader'
+import { StatusTag } from './StatusTag'
+
+const UserOrdersPage: React.FC = () => {
+  const { orders, loading, error, fetchOrdersByUserId } = useOrders()
+  const { currentUser } = useAuth()
+
+  useEffect(() => {
+    if (currentUser && currentUser.uid) {
+      fetchOrdersByUserId(currentUser.uid)
+    }
+  }, [currentUser, fetchOrdersByUserId])
+
+  if (loading) {
+    return <Loader />
+  }
+
+  if (error) {
+    return <p className="text-center text-red-500 text-lg">Erreur : {error}</p>
+  }
+
+  return (
+    <div className="px-4">
+      <div className="overflow-x-auto relative  border-2 border-black rounded-lg">
+        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" className="py-3 px-6">
+                Date de commande
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Produits et détails
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Adresse de livraison
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Total Quantités
+              </th>
+              <th scope="col" className="py-3 px-6">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.orderId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                <td className="py-4 px-6">{new Date(order.orderDate).toLocaleDateString('fr-FR')}</td>
+                <td className="py-4 px-6">
+                  {order.products.map((product) =>
+                    product.variant.map((variant, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <img src={variant.image} alt="Product" className="w-10 h-10 object-cover rounded-full" />
+                        <span>{`Couleur: ${variant.color}, Quantité: ${variant.quantity}`}</span>
+                      </div>
+                    ))
+                  )}
+                </td>
+                <td className="py-4 px-6">
+                  {`${order.shippingAddress.fullName}, ${order.shippingAddress.address}, ${
+                    order.shippingAddress.city
+                  }, ${order.shippingAddress.postalCode}, ${order.shippingAddress.country || 'FR'}`}
+                </td>
+                <td className="py-4 px-6">
+                  {order.products.reduce(
+                    (total, product) => total + product.variant.reduce((sum, v) => sum + v.quantity, 0),
+                    0
+                  )}
+                </td>
+                <td className="py-4 px-6">
+                  <StatusTag status={order.status}></StatusTag>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default UserOrdersPage
+
+// File: src/components/cart/CartBadge.tsx
+import React from 'react'
+
+const CartBadge = ({ itemCount }) => {
+  if (itemCount === 0) {
+    return null // Don't display the badge if there are no items
+  }
+
+  return (
+    <span className="absolute top-0 right-0 block h-6 w-6 rounded-full  text-white bg-red-600 text-xs leading-6 text-center">
+      {itemCount}
+    </span>
+  )
+}
+
+export default CartBadge
+
+// File: src/components/cart/CartItemBatchDisplay.tsx
+import React from 'react'
+
+import { useCartContext } from '../../context/CartContext'
+import { calculatePriceByColor, calculateStandardPrice, calculateTotalPrice } from '../../utils/prices'
+import { CartItem, ColorImage } from '../types/types'
+import PriceDisplay from './price/PriceDisplay'
+
+interface CartItemProps {
+  item: CartItem
+  onRemove: (id: string) => void
+}
+
+const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
+  const { selectedCountry } = useCartContext()
+  const { id, name, variants, shippingOptions, priceOption } = item
+  console.log('🚀 ~ CartItemBatchDisplay ~ variants:', variants)
+
+  // Determine if we need to calculate by color
+  const hasColorPricing = variants.some((variant) => 'price' in variant)
+  console.log('🚀 ~ CartItemBatchDisplay ~ hasColorPricing:', hasColorPricing)
+
+  // Calculate total price based on whether we use color pricing or standard price options
+  const totalPrice = hasColorPricing
+    ? calculatePriceByColor(variants as ColorImage[], variants as ColorImage[])
+    : calculateTotalPrice(variants, priceOption || [])
+  console.log('🚀 ~ CartItemBatchDisplay ~ totalPrice:', totalPrice)
+
+  // Standard price as a fallback when no specific pricing is provided
+  const standardPrice = calculateStandardPrice(variants, priceOption || [])
+
+  // Calculate shipping cost with a default fallback
+  const shippingCost = shippingOptions[selectedCountry] ?? 10
+
+  return (
+    <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">
+      <button onClick={() => onRemove(id)} className="absolute top-1 right-1 p-1 text-red-500 hover:text-red-700">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-4 h-4"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div className="flex flex-col space-y-2">
+        <h3 className="text-lg font-bold text-gray-800">{name}</h3>
+        {variants.map((variant, index) => (
+          <div key={index} className="flex justify-between items-center p-2">
+            {variant.image && (
+              <img src={variant.image} alt={`${variant.color} color variant`} className="h-12 w-12 rounded-full" />
+            )}
+            <p className="text-sm text-gray-500">{`${variant.color}`}</p>
+            <h3 className="text-md text-black">{`x${variant.quantity}`}</h3>
+          </div>
+        ))}
+        <div className="flex justify-between items-center mt-4">
+          <PriceDisplay
+            totalPrice={totalPrice + shippingCost}
+            standardPrice={standardPrice}
+            shippingPrice={shippingCost}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default CartItemBatchDisplay
+
+// File: src/components/cart/CartItemList.tsx
+import React from 'react'
+
+import { useCartContext } from '../../context/CartContext'
+import CartItemBatchDisplay from './CartItemBatchDisplay'
+
+const CartItemList: React.FC = () => {
+  const { cart, removeBatch, selectedCountry, setSelectedCountry, totalPrice, allItemsShippable } = useCartContext()
+
+  return (
+    <div className="space-y-6 mb-4">
+      <h2 className="text-3xl font-bold text-center">Votre Panier</h2>
+      {cart.map((item) => (
+        <CartItemBatchDisplay key={item.id} item={item} onRemove={() => removeBatch(item.id)} />
+      ))}
+    </div>
+  )
+}
+
+export default CartItemList
+
+// File: src/components/cart/CartPayment.tsx
+import { Elements } from '@stripe/react-stripe-js'
+import React, { useEffect } from 'react'
+
+import { useCartContext } from '../../context/CartContext'
+import useCreatePaymentIntent from '../../hooks/useCreatePaymentIntent'
+import { stripePromise } from '../../router/Router'
+import { Loader } from '../common/Loader'
+import { OrderInfo } from '../types/types'
+import PaymentForm from './PaymentForm'
+
+interface Props {
+  orderInfo: OrderInfo
+}
+
+const CartPayment = ({ orderInfo }: Props) => {
+  const { createPaymentIntent, clientSecret } = useCreatePaymentIntent()
+  const { totalPrice } = useCartContext()
+
+  useEffect(() => {
+    createPaymentIntent(totalPrice, 'eur')
+  }, [])
+
+  if (!clientSecret) return <Loader />
+
+  return (
+    <div className="rounded-lg flex flex-col md:flex-row justify-center w-full">
+      <Elements stripe={stripePromise} options={{ clientSecret }}>
+        <PaymentForm clientSecret={clientSecret} orderInfo={orderInfo} />
+      </Elements>
+    </div>
+  )
+}
+
+export default CartPayment
+
+// File: src/components/cart/CartShipping.tsx
+import React from 'react'
+
+import { useAuth } from '../../context/AuthContext'
+import { useCartContext } from '../../context/CartContext'
+import CartPayment from './CartPayment'
+import { ShippingAddressForm } from './ShippingAddressForm'
+
+const CartShipping: React.FC = () => {
+  const { currentUser } = useAuth()
+  const {
+    cart,
+    setShippingAddress,
+    shippingAddress,
+    setAddressCompleted,
+    addressCompleted,
+    orderInfo,
+    setUserInfoAsShippingAddress,
+    shippingError,
+    setShippingError
+  } = useCartContext()
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
+  }
+
+  if (addressCompleted) {
+    return <CartPayment orderInfo={orderInfo} />
+  }
+
+  return (
+    <ShippingAddressForm
+      shippingAddress={shippingAddress}
+      handleAddressChange={handleAddressChange}
+      shippingError={shippingError}
+      fillAddressWithUser={() => setUserInfoAsShippingAddress()}
+    />
+  )
+}
+
+export default CartShipping
+
+// File: src/components/cart/EmptyCart.tsx
+import { faShoppingCart } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import React from 'react'
+import { Link } from 'react-router-dom'
+
+const EmptyCard = () => {
+  return (
+    <div className="max-w-sm mx-auto my-10 p-5  flex flex-col items-center justify-center h-96">
+      <FontAwesomeIcon icon={faShoppingCart} size="3x" className="text-gray-400 mb-4" />
+      <p className="text-gray-600 mb-4">Votre panier est vide</p>
+      <Link to="/" className="px-4 py-2 bg-black text-white rounded hover:bg-blue-600 transition-colors">
+        Retour à la boutique
+      </Link>
+    </div>
+  )
+}
+
+export default EmptyCard
+
+// File: src/components/cart/PaymentForm.tsx
+import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+
+import { useCartContext } from '../../context/CartContext'
+import useOrders from '../../hooks/useOrders'
+
+interface PaymentFormProps {
+  clientSecret: string
+  orderInfo: any
+}
+
+const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret }) => {
+  const stripe = useStripe()
+  const elements = useElements()
+  const navigate = useNavigate()
+  const { addOrder } = useOrders()
+  const { setCart, orderInfo } = useCartContext()
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!stripe || !elements) {
+      console.error('Stripe.js has not loaded yet!')
+      return
+    }
+
+    const result = await stripe.confirmPayment({
+      elements,
+      confirmParams: {},
+      redirect: 'if_required'
+    })
+
+    if (result.error) {
+      console.log(result.error.message)
+    } else {
+      console.log('Payment successful:', result.paymentIntent, orderInfo)
+      toast.success('Paiement effectué avec succès')
+      await addOrder({ ...orderInfo, orderDate: new Date(), status: 'en attente' })
+      navigate('/confirmation')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4 w-full border-2 border-black rounded-md">
+      <PaymentElement />
+      <button
+        type="submit"
+        disabled={!stripe} // Button is disabled if Stripe hasn't loaded or there's no active stripe instance
+        className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition duration-150 ease-in-out"
+      >
+        Payer
+      </button>
+    </form>
+  )
+}
+
+export default PaymentForm
+
+// File: src/components/cart/ShippingAddressForm.tsx
+import React from 'react'
+
+import { useCartContext } from '../../context/CartContext'
+import { Country, ShippingAddress } from '../types/types'
+
+export const ShippingAddressForm = ({
+  shippingAddress,
+  handleAddressChange,
+  fillAddressWithUser,
+  shippingError
+}: {
+  shippingAddress: ShippingAddress
+  handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  fillAddressWithUser: () => void
+  shippingError: string
+}) => {
+  const { selectedCountry, setSelectedCountry } = useCartContext()
+  return (
+    <div className="p-4 bg-gray-50 border-2 border-black rounded-md">
+      <form className="space-y-4">
+        <h3 className="text-lg font-medium mb-4">Adresse de Livraison</h3>
+        <button
+          type="button"
+          onClick={fillAddressWithUser}
+          className="btn btn-secondary w-full bg-gray-200 text-black py-2 px-4 rounded-md hover:bg-gray-300 transition duration-150 ease-in-out"
+        >
+          Remplir avec mes informations
+        </button>
+        <input
+          type="text"
+          name="fullName"
+          placeholder="Nom complet"
+          value={shippingAddress.fullName}
+          onChange={handleAddressChange}
+          className="input input-bordered w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+          required
+        />
+        <input
+          type="text"
+          name="address"
+          placeholder="Adresse"
+          value={shippingAddress.address}
+          onChange={handleAddressChange}
+          className="input input-bordered w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+          required
+        />
+        <input
+          type="text"
+          name="city"
+          placeholder="Ville"
+          value={shippingAddress.city}
+          onChange={handleAddressChange}
+          className="input input-bordered w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+          required
+        />
+        <input
+          type="text"
+          name="postalCode"
+          placeholder="Code Postal"
+          value={shippingAddress.postalCode}
+          onChange={handleAddressChange}
+          className="input input-bordered w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+          required
+        />
+        {shippingError && <p className="text-red-500">{shippingError}</p>}
+        <p className="text-sm font-semibold text-gray-900">Choisissez votre pays:</p>
+        <select
+          id="country"
+          value={selectedCountry}
+          onChange={(e) => setSelectedCountry(e.target.value as Country)}
+          className="mt-1 block w-full p-2.5 text-sm bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        >
+          {['France', 'Belgique', 'Luxembourg'].map((country) => (
+            <option key={country} value={country}>
+              {country}
+            </option>
+          ))}
+        </select>
+      </form>
+    </div>
+  )
+}
+
+// File: src/components/cart/price/PriceDisplay.tsx
+import React from 'react'
+
+interface PriceDisplayProps {
+  totalPrice: number
+  standardPrice?: number
+  shippingPrice?: number
+}
+
+const PriceDisplay: React.FC<PriceDisplayProps> = ({ totalPrice, standardPrice, shippingPrice }) => {
+  return (
+    <div className="flex flex-col space-y-2">
+      {totalPrice !== null && (
+        <p className="text-xl font-bold">
+          <span className="text-2xl whitespace-nowrap mr-2">{totalPrice.toFixed(2)} €</span>
+        </p>
+      )}
+      {standardPrice !== undefined && standardPrice > 0 && standardPrice < totalPrice && (
+        <p className="text-xl font-bold">
+          <span className="text-2xl whitespace-nowrap mr-2">{standardPrice.toFixed(2)} €</span>
+        </p>
+      )}
+      {shippingPrice && <p className="text-sm text-gray-500">Frais de port: {shippingPrice.toFixed(2)} €</p>}
+    </div>
+  )
+}
+
+export default PriceDisplay
+
+// File: src/components/cart/price/PriceOptionModal.tsx
+import React from 'react'
+
+import MyModal from '../../common/Modal'
+import { PriceRow } from '../../types/types'
+import { PriceTableComponent } from './PriceTableComponent'
+
+interface Props {
+  isOpen: boolean
+  setIsOpen: (isOpen: boolean) => void
+  productOption: PriceRow[]
+}
+
+export const PriceOptionModal = ({ isOpen, setIsOpen, productOption }: Props) => {
+  return (
+    <MyModal isOpen={isOpen} setIsOpen={setIsOpen}>
+      <PriceTableComponent priceData={productOption} onChange={() => {}} />
+    </MyModal>
+  )
+}
+
+// File: src/components/cart/price/PriceTableComponent.tsx
+import React, { useState } from 'react'
+
+interface PriceRow {
+  quantity: string
+  price: string
+}
+
+interface Props {
+  priceData: PriceRow[]
+  onChange: (quantity: string) => void
+}
+
+export const PriceTableComponent = ({ priceData, onChange }: Props) => {
+  const [selectedQuantity, setSelectedQuantity] = useState<string>('')
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4">
+      <div className="bg-white rounded-xl border-2 border-black shadow-lg overflow-hidden md:max-w-2xl w-full">
+        <div className="p-6 md:p-8">
+          <h2 className="text-lg md:text-xl font-bold text-center mb-4">Options de Prix</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-500">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3">
+                    Article
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Prix TTC
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {priceData.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    className={`cursor-pointer ${
+                      row.quantity === selectedQuantity ? 'bg-blue-100' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => {
+                      onChange(row.quantity)
+                      setSelectedQuantity(row.quantity)
+                    }}
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">{row.quantity}</td>
+                    <td className="px-6 py-4">{row.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// File: src/components/categories/CategorieBlock.tsx
+import React from 'react'
+import { Link } from 'react-router-dom'
+
+interface Props {
+  title: string
+  icon: string
+  description: string
+  background: string
+  navigation?: string
+}
+
+const CategorieBlock = ({ title, icon, description, background, navigation }: Props) => {
+  return (
+    <Link to={`categories/${navigation}`}>
+      <div
+        style={{
+          backgroundImage: `url(${background})`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center'
+        }}
+        className={`transition rounded-md  hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 hover:-translate-y-2 transform duration-500 ease-in-out`}
+      >
+        <div className="bg-black bg-opacity-50 rounded-md hover:bg-opacity-0 transition ease-in-out duration-500">
+          <div className="p-5 h-44 flex flex-col justify-center text-center">
+            <h1 className="font-bold text-2xl  text-white  mb-1">{title.toLocaleUpperCase()}</h1>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+export default CategorieBlock
+
+// File: src/components/categories/Categories.tsx
+import React from 'react'
+
+import services from '../../data/categories'
+import { SectionTitle } from '../common/SectionTitle'
+import CategorieBlock from './CategorieBlock'
+
+export const Categories = () => {
+  return (
+    <div className="">
+      <div className="">
+        <SectionTitle>Catégories</SectionTitle>
+      </div>
+      <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5`}>
+        {services.map((service) => (
+          <CategorieBlock
+            key={service.title}
+            title={service.title}
+            icon={service.icon}
+            description={service.description}
+            background={service.background}
+            navigation={service.navigation}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// File: src/components/categories/ProductCategory.tsx
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { categories } from '../../data/categories'
+import useCategories from '../../hooks/useCategorie'
+import { getDownloadUrl } from '../../utils/firebaseUtils'
+import { Loader } from '../common/Loader'
+import { SectionTitle } from '../common/SectionTitle'
+import ProductCard from '../products/ProductCard'
+import { Product } from '../types/types'
+
+export interface ProductCategoryProps {
+  limit: boolean
+}
+
+export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
+  const { category } = useParams()
+  const [images, setImages] = useState<Product[]>([])
+  const [index, setIndex] = useState<number>(-1)
+  const elements: Product[] = useCategories('products', false, category)
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const promises = elements.map((element: Product) => {
+      return getDownloadUrl(element.main_image)
+    })
+    Promise.all(promises).then((urls) => {
+      const newImages = urls.map((url, index) => {
+        return {
+          src: url,
+          id: elements[index].id,
+          name: elements[index].name,
+          description: elements[index].description,
+          related_images: elements[index].related_images,
+          price: elements[index].priceOptions[0].price,
+          promotion: elements[index].promotion,
+          new: elements[index].new
+        }
+      })
+      setImages(newImages)
+    })
+  }, [category, elements])
+
+  return (
+    <>
+      <SectionTitle id="category">{categories[category]}</SectionTitle>
+      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-8">
+        {images.length !== 0 ? (
+          images.map((image, index) => (
+            <ProductCard
+              key={index}
+              src={image.src}
+              name={image.name}
+              price={image.price}
+              id={image.id}
+              description={image.description}
+              promotion={image.promotion}
+              new={image.new}
+              onClick={() => navigate(`/product/${image.id}`)}
+            />
+          ))
+        ) : (
+          <Loader />
+        )}
+      </main>
+    </>
+  )
+}
+
+export default ProductCategory
+
+// File: src/components/categories/ProductsShowCase.tsx
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { useCollectionName } from '../../hooks/useDatabase'
+import useMediaQuery from '../../hooks/useMediaQuery'
+import { getDownloadUrl } from '../../utils/firebaseUtils'
+import { SectionTitle } from '../common/SectionTitle'
+import ProductCard from '../products/ProductCard'
+import { Product } from '../types/types'
+
+export interface ShowcaseProps {
+  limit: boolean
+}
+
+export const ProductsShowCase: React.FC<ShowcaseProps> = ({ limit }) => {
+  const [images, setImages] = useState<Product[]>([])
+  const [index, setIndex] = useState(-1)
+  const elements: Product[] = useCollectionName('products', false)
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [sortByPrice, setSortByPrice] = useState(false)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (elements.length > 0) {
+      const promises = elements.map((element) => {
+        return getDownloadUrl(element.main_image)
+      })
+      Promise.all(promises).then((urls) => {
+        const newImages = urls.map((url, index) => {
+          return {
+            src: url,
+            id: elements[index].id,
+            name: elements[index].name,
+            categories: elements[index].categories,
+            description: elements[index].description,
+            price: elements[index].priceOptions?.[0].price || elements[index].color_images?.[0].price || 0,
+            published: elements[index].published,
+            promotion: elements[index].promotion,
+            new: elements[index].new,
+            color_images: elements[index].color_images
+          }
+        })
+        setImages(newImages)
+      })
+    }
+  }, [elements])
+
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
+  return (
+    <>
+      <section className="py-4 col-span-10 col-start-2 col-end-12">
+        <SectionTitle id="showcase">Produits</SectionTitle>
+        {/* <FilterBar
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          sortByPrice={sortByPrice}
+          setSortByPrice={setSortByPrice}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+        /> */}
+        <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {images.map((image, index) => (
+            <ProductCard
+              key={index}
+              src={image.src}
+              name={image.name}
+              price={image.price || image}
+              id={image.id}
+              description={image.description}
+              promotion={image.promotion}
+              new={image.new}
+              colorNb={image?.color_images?.length || 0}
+              onClick={(id) => navigate(`/product/${image.id}`)}
+            />
+          ))}
+        </main>
+      </section>
+    </>
+  )
+}
+
+export default ProductsShowCase
+
+// File: src/components/common/Lightbox.tsx
+import 'yet-another-react-lightbox/styles.css'
+
+import * as React from 'react'
+import Lightbox from 'yet-another-react-lightbox'
+
+import { getDownloadUrl } from '../../utils/firebaseUtils'
+
+export default function RelatedPhotosLightBox({ currentPhoto }) {
+  const [open, setOpen] = React.useState(false)
+  const [images, setImages] = React.useState([])
+
+  React.useEffect(() => {
+    if (currentPhoto?.related_images?.length > 0) {
+      const promises = currentPhoto.related_images.map((url) => {
+        return getDownloadUrl(url)
+      })
+      Promise.all(promises).then((urls) => {
+        setImages(urls)
+      })
+    }
+  }, [currentPhoto])
+
+  return (
+    <div className="flex w-full justify-center p-4 bg-black">
+      <button
+        className="font-bold w-full h-max text-white px-4 py-2 text-2xl uppercase"
+        type="button"
+        onClick={() => setOpen(true)}
+      >
+        <h1>Voir {currentPhoto?.related_images?.length} autres photos</h1>
+      </button>
+
+      <Lightbox
+        open={open}
+        close={() => setOpen(false)}
+        slides={images.map((image) => {
+          return {
+            src: image
+          }
+        })}
+      />
+    </div>
+  )
+}
+
+// File: src/components/common/Loader.tsx
+import { motion } from 'framer-motion'
+import React from 'react'
+
+const variants = {
+  initial: {
+    scaleY: 0.5,
+    opacity: 0
+  },
+  animate: {
+    scaleY: 1,
+    opacity: 1,
+    transition: {
+      repeat: Infinity,
+      repeatType: 'mirror',
+      duration: 1,
+      ease: 'circIn'
+    }
+  }
+}
+
+export const Loader = () => {
+  return (
+    <motion.div
+      transition={{
+        staggerChildren: 0.25
+      }}
+      initial="initial"
+      animate="animate"
+      className="flex gap-1"
+    >
+      <motion.div variants={variants} className="h-12 w-2 bg-black" />
+      <motion.div variants={variants} className="h-12 w-2 bg-black" />
+      <motion.div variants={variants} className="h-12 w-2 bg-black" />
+      <motion.div variants={variants} className="h-12 w-2 bg-black" />
+      <motion.div variants={variants} className="h-12 w-2 bg-black" />
+    </motion.div>
+  )
+}
+
+// File: src/components/common/Modal.tsx
+import { Dialog, Transition } from '@headlessui/react'
+import React, { Fragment } from 'react'
+
+interface Props {
+  isOpen: boolean
+  setIsOpen: (isOpen: boolean) => void
+  children: React.ReactNode
+}
+
+export default function MyModal({ isOpen, setIsOpen, children }: Props) {
+  function closeModal() {
+    setIsOpen(false)
+  }
+
+  return (
+    <>
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white  text-left align-middle shadow-xl transition-all">
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-3 right-3 rounded-full p-1.5 text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  >
+                    Fermer
+                  </button>
+                  {children}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
+  )
+}
+
+// File: src/components/common/SectionTitle.tsx
+import React from 'react'
+
+interface Props {
+  children: React.ReactNode
+  id: string
+}
+
+export const SectionTitle = ({ children }: Props) => {
+  return (
+    <div className="flex flex-row items-center my-8">
+      <span className="w-full h-0.5 bg-gray-400 mr-4"></span>
+      <h1 className="whitespace-nowrap text-2xl lg:text-4xl font-light text-gray-700">{children}</h1>
+      <span className="w-full h-0.5 bg-gray-400 ml-4"></span>
+    </div>
+  )
+}
+
+// File: src/components/common/inputs/NumberInput.tsx
+import React from 'react'
+
+export const NumberInput = ({ value, onChange }) => {
+  const handleDecrement = () => {
+    if (value === 0) {
+      return
+    }
+    onChange(value - 1)
+  }
+
+  const handleIncrement = () => {
+    onChange(value + 1)
+  }
+
+  return (
+    <div className="w-32 py-2 px-3 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-slate-800 dark:border-gray-700">
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          className="text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md h-8 w-8 flex justify-center items-center"
+          onClick={handleDecrement}
+          disabled={value === 0}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <input
+          className="text-center w-full mx-2 text-lg leading-none bg-transparent outline-none border-none text-gray-800 dark:text-white"
+          type="text"
+          value={value}
+          onChange={(e) => onChange(Math.max(1, parseInt(e.target.value, 10) || 1))} // Prevent non-numeric values and negative values
+        />
+        <button
+          type="button"
+          className="text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md h-8 w-8 flex justify-center items-center"
+          onClick={handleIncrement}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <line x1="5" y1="12" x2="19" y2="12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// File: src/components/menu/HeaderBar.tsx
+import {
+  faBars,
+  faShoppingCart,
+  faSignInAlt,
+  faSignOutAlt,
+  faTimes,
+  faUserPlus
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { useAuth } from '../../context/AuthContext'
+import { useCartContext } from '../../context/CartContext'
+import { categories } from '../../data/categories'
+import CartBadge from '../cart/CartBadge'
+
+export const HeaderBar = () => {
+  const { cart } = useCartContext()
+  const { currentUser, logout } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
+
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+
+  const menuStyle = `fixed top-0 left-0 w-full h-full bg-white z-50 ${isMenuOpen ? 'block' : 'hidden'}`
+
+  const closeIconStyle = 'absolute top-4 right-4 cursor-pointer text-3xl'
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      closeMenu() // Close the menu after logging out
+    } catch (error) {
+      console.error('Failed to log out:', error)
+    }
+  }
+
+  return (
+    <div id="header" className="bg-white  sticky top-0 z-50 w-screen px-4 py-2">
+      <div className="flex items-center justify-between">
+        <div className="lg:hidden">
+          <FontAwesomeIcon icon={faBars} size="lg" className="cursor-pointer" onClick={toggleMenu} />
+        </div>
+        <Link to="/">
+          <div alt="logo" className="h-24 bg-light-logo bg-no-repeat bg-center bg-contain w-48"></div>
+        </Link>
+        <div className="flex items-center">
+          {currentUser ? (
+            <>
+              <Link to="/profile" className="hidden lg:inline mr-6">
+                Mon Profil
+              </Link>
+              <button onClick={handleLogout} className="hidden lg:flex items-center mr-6">
+                <FontAwesomeIcon icon={faSignOutAlt} size="lg" className="mr-2" />
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="hidden lg:inline mr-6">
+                <FontAwesomeIcon icon={faSignInAlt} size="lg" className="mr-2" />
+                Connexion
+              </Link>
+              <Link to="/signup" className="hidden lg:inline mr-6">
+                <FontAwesomeIcon icon={faUserPlus} size="lg" className="mr-2" />
+                Inscription
+              </Link>
+            </>
+          )}
+          <Link to="/cart" className="relative">
+            <FontAwesomeIcon icon={faShoppingCart} size="xl" className="mr-2" />
+            <CartBadge itemCount={cart.length} />
+          </Link>
+        </div>
+      </div>
+
+      {/* Full-Page Menu */}
+      <div className={menuStyle}>
+        <FontAwesomeIcon icon={faTimes} className={closeIconStyle} onClick={closeMenu} />
+        <div className="flex flex-col items-center justify-center h-full gap-y-5 font-bold">
+          <Link to="/" onClick={closeMenu}>
+            Accueil
+          </Link>
+          {Object.keys(categories).map((category, index) => (
+            <Link key={index} to={`/categories/${category}`} onClick={closeMenu}>
+              {categories[category]}
+            </Link>
+          ))}
+          <Link to="/cart" onClick={closeMenu}>
+            Panier
+          </Link>
+          {currentUser ? (
+            <>
+              <Link to="/profile" onClick={closeMenu}>
+                Mon Profil
+              </Link>
+              <button onClick={handleLogout} className="text-red-600 hover:text-red-800 font-bold py-2 px-4">
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" onClick={closeMenu}>
+                Connexion
+              </Link>
+              <Link to="/signup" onClick={closeMenu}>
+                Inscription
+              </Link>
+            </>
+          )}
+          <Link to="/contact" onClick={closeMenu}>
+            Contact
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// File: src/components/products/ProductCard.tsx
+import React, { useEffect, useState } from 'react'
+
+interface PromotionTagProps {
+  percentage: number
+}
+
+const PromotionTag: React.FC<PromotionTagProps> = ({ percentage }) => {
+  return (
+    <div className="bg-red-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">
+      -{percentage}%
+    </div>
+  )
+}
+
+interface ProductCardProps {
+  src: string
+  name: string
+  price: number
+  description?: string
+  promotion?: number
+  colorNb: number
+  new?: boolean
+  onClick: () => void
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({
+  src,
+  name,
+  price,
+  description = '',
+  promotion,
+  new: isNew,
+  colorNb,
+  onClick
+}) => {
+  const [truncatedDescription, setTruncatedDescription] = useState<string>(description)
+  const maxDescriptionLength = 100
+
+  useEffect(() => {
+    if (description.length > maxDescriptionLength) {
+      setTruncatedDescription(`${description.slice(0, maxDescriptionLength)}...`)
+    } else {
+      setTruncatedDescription(description)
+    }
+  }, [description])
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-900 cursor-pointer flex flex-col justify-between"
+    >
+      <img src={src} alt={name} className="w-full h-auto object-cover mb-2" />
+      <div className="p-4 flex flex-col gap-2">
+        <h3 className="text-xl text-gray-700 font-semibold mb-1">{name}</h3>
+        <div className="flex items-center space-x-2">
+          {isNew && (
+            <span className="bg-yellow-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">
+              Nouveauté
+            </span>
+          )}
+          {promotion && <PromotionTag percentage={promotion} />}
+        </div>
+        <p className="text-gray-700 text-sm mb-2">{truncatedDescription || 'Aucune description disponible.'}</p>
+      </div>
+      <div className="px-4 py-2 mt-auto flex justify-end gap-3 bg-gray-900">
+        {colorNb > 0 && (
+          <div className="bg-white flex justify-center items-center text-gray-700 px-2 py-1 text-xs tracking-wide rounded-3xl">
+            {colorNb} autres...
+          </div>
+        )}
+        <p className="text-white text-xl font-bold">{`${price}€`}</p>
+      </div>
+    </div>
+  )
+}
+
+export default ProductCard
+
+// File: src/components/products/ShippingOptionsComponent.tsx
+import React from 'react'
+
+interface ShippingOptions {
+  [country: string]: number | null
+}
+
+interface ProductProps {
+  shippingOptions: ShippingOptions
+}
+
+const ShippingOptionsComponent: React.FC<ProductProps> = ({ shippingOptions }) => {
+  return (
+    <div className="max-w-md mx-auto bg-white border-black border-2 rounded-xl overflow-hidden md:max-w-2xl mb-4 shadow">
+      <div className="p-8">
+        <h2 className="uppercase tracking-wide text-lg text-black font-bold mb-4">Options de Livraison</h2>
+        <ul>
+          {Object.entries(shippingOptions).map(([country, cost]) => (
+            <li key={country} className="flex justify-between items-center py-2 border-b last:border-b-0">
+              <span className="text-gray-700">{country} :</span>
+              {cost === null ? (
+                <span className="inline-block bg-red-500 text-white px-3 py-1 rounded-full text-sm">Indisponible</span>
+              ) : (
+                <span className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm">{`${cost} €`}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+export default ShippingOptionsComponent
+
+// File: src/components/types/types.ts
+export interface PriceRow {
+  quantity: string
+  price: string
+  color?: string // Add this line to handle color-specific pricing
+}
+
+export interface ShippingOptions {
+  Belgique?: number | null
+  Luxembourg?: number | null
+  France?: number | null
+}
+
+export interface ShippingAddress {
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+}
+
+export interface Image {
+  image: string
+  color?: string
+}
+
+export interface ProductVariant {
+  color: string
+  image: string
+  quantity?: number
+}
+
+export interface FirestoreRef {
+  converter: any
+  _key: {
+    path: {
+      segments: string[]
+      offset: number
+      len: number
+    }
+  }
+  type: string
+  firestore: any
+}
+
+export interface Product {
+  id: string
+  name: string
+  main_image: string
+  related_images: string[]
+  color_images: ColorImage[]
+  categories: string[]
+  description: string
+  priceOptions?: PriceRow[]
+  published: boolean
+  promotion: boolean
+  new: boolean
+  facebookProductUrl: string
+  shippingOptions: ShippingOptions
+  ref: FirestoreRef
+}
+
+export interface ColorImage {
+  color: string
+  image?: string
+  availableQuantity: number
+  price?: number
+}
+
+export interface BatchItem extends ColorImage {
+  quantity: number
+}
+
+export interface CartItem {
+  id: string
+  name: string
+  variants: ProductVariant[]
+  ref: FirestoreRef
+  priceOption: PriceRow[]
+  color_images: ColorImage[]
+  shippingOptions: ShippingOptions
+}
+
+export interface OrderInfo {
+  userId: string | null
+  products: { productId: FirestoreRef; variant: ProductVariant[] }[]
+  shippingAddress: ShippingAddress
+}
+
+export type Country = 'Belgique' | 'Luxembourg' | 'France'
+
+export type Status = 'en attente' | 'en cours de livraison' | 'livré'
+
+export type ProductOrder = {
+  productId: string
+  quantity: number
+  color?: string
+}
+export interface Order {
+  userId: string
+  products: ProductOrder[]
+  orderDate: Date
+  shippingAddress: ShippingAddress
+  status?: Status
+}
+
+// File: src/context/AuthContext.tsx
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+
+import { auth, projectFirestore } from '../firebase-config'
+import useUsers from '../hooks/useUsers'
+
+const AuthContext = createContext()
+
+export const useAuth = () => useContext(AuthContext)
+
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const { addUser } = useUsers()
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const q = query(collection(projectFirestore, 'users'), where('id', '==', user.uid))
+
+        const querySnapshot = await getDocs(q)
+        const userData = querySnapshot.forEach((doc) => {
+          setCurrentUser({ ...doc.data() })
+        })
+      } else {
+        setCurrentUser(null)
+      }
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  const login = async (email, password) => {
+    const response = await signInWithEmailAndPassword(auth, email, password)
+    if (response.user) {
+      const q = query(collection(projectFirestore, 'users'), where('id', '==', response.user.uid))
+
+      const querySnapshot = await getDocs(q)
+      const user = querySnapshot.forEach((doc) => {
+        setCurrentUser({ ...doc.data() })
+      })
+
+      return response
+    }
+  }
+
+  const logout = async () => {
+    await signOut(auth)
+    setCurrentUser(null)
+  }
+
+  const signup = async (userInfo) => {
+    console.log('🚀 ~ signup ~ userInfo:', userInfo)
+    const response = await createUserWithEmailAndPassword(auth, userInfo.email, userInfo.password)
+    console.log('🚀 ~ signup ~ response:', response)
+    if (response.user) {
+      const userData = {
+        id: response.user.uid,
+        ...userInfo
+      }
+      const newUser = await addUser(userData)
+      setCurrentUser(userData)
+    }
+  }
+
+  const value = {
+    currentUser,
+    login,
+    logout,
+    signup
+  }
+
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>
+}
+
+export default AuthProvider
+
+// File: src/context/CartContext.tsx
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
+
+import { CartItem, Country, OrderInfo, ShippingAddress } from '../components/types/types'
+import { calculatePriceByColor, calculateTotalPrice } from '../utils/prices'
+import { useAuth } from './AuthContext'
+
+interface CartContextType {
+  cart: CartItem[]
+  addBatch: (newItems: CartItem[]) => void
+  removeBatch: (itemId: string) => void
+  shippingAddress: ShippingAddress
+  setShippingAddress: (address: ShippingAddress) => void
+  selectedCountry: Country
+  setSelectedCountry: (country: Country) => void
+  totalPrice: number
+  addressCompleted: boolean
+  setAddressCompleted: (completed: boolean) => void
+  orderInfo: OrderInfo | null
+  setOrderInfo: (info: OrderInfo | null) => void
+  allItemsShippable: boolean
+  setUserInfoAsShippingAddress: () => void
+  shippingError: string
+  setShippingError: (error: string) => void
+  validateAddress: () => boolean
+  resetCart: () => void
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined)
+
+const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const getInitialCart = (): CartItem[] => {
+    try {
+      const storedCart = localStorage.getItem('cart')
+      return storedCart ? JSON.parse(storedCart) : []
+    } catch (error) {
+      console.error('Failed to retrieve cart from localStorage:', error)
+      return []
+    }
+  }
+
+  const { currentUser } = useAuth()
+
+  const [cart, setCart] = useState<CartItem[]>(getInitialCart)
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+  const [selectedCountry, setSelectedCountry] = useState<Country>('France')
+  const [totalPrice, setTotalPrice] = useState(0)
+  const [addressCompleted, setAddressCompleted] = useState(false)
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null)
+  const [shippingError, setShippingError] = useState('')
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+
+    const totalPrice = cart.reduce((acc, item) => {
+      if (item.priceOption?.length > 0) {
+        return acc + calculateTotalPrice(item.variants, item.priceOption)
+      }
+      return acc + calculatePriceByColor(item.variants, item.color_images)
+    }, 0)
+    setTotalPrice(totalPrice)
+
+    const orderInfo: OrderInfo = {
+      userId: currentUser?.id,
+      products: cart.map((item) => ({ productId: item.ref, variant: item.variants })),
+      shippingAddress
+    }
+    setOrderInfo(orderInfo)
+  }, [cart])
+
+  const validateAddress = () => {
+    if (
+      shippingAddress.fullName === '' ||
+      shippingAddress.address === '' ||
+      shippingAddress.city === '' ||
+      shippingAddress.postalCode === ''
+    ) {
+      setShippingError('Veuillez remplir tous les champs')
+      toast.error('Veuillez remplir tous les champs')
+      return false
+    } else {
+      setShippingError('')
+      setAddressCompleted(true)
+      return true
+    }
+  }
+
+  const allItemsShippable = useMemo(() => {
+    return cart.every(
+      (item) => item.shippingOptions[selectedCountry] !== null && item.shippingOptions[selectedCountry] !== undefined
+    )
+  }, [cart, selectedCountry])
+
+  const setUserInfoAsShippingAddress = () => {
+    if (currentUser) {
+      setShippingAddress({
+        fullName: currentUser.fullName,
+        address: currentUser.address || '',
+        city: currentUser.city || '',
+        postalCode: currentUser.postalCode || ''
+      })
+    }
+  }
+
+  const addBatch = (newItems: CartItem[]) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart.map((item) => ({ ...item }))
+      newItems.forEach((newItem) => {
+        const existingItemIndex = updatedCart.findIndex((item) => item.id === newItem.id)
+        if (existingItemIndex !== -1) {
+          // Merge variants
+          const existingItem = updatedCart[existingItemIndex]
+          newItem.variants.forEach((newVariant) => {
+            const variantIndex = existingItem.variants.findIndex((v) => v.color === newVariant.color)
+            if (variantIndex !== -1) {
+              existingItem.variants[variantIndex].quantity += newVariant.quantity // Merge quantity
+            } else {
+              existingItem.variants.push(newVariant) // Add new variant
+            }
+          })
+        } else {
+          updatedCart.push(newItem) // New item
+        }
+      })
+      return updatedCart
+    })
+  }
+
+  const removeBatch = (itemId: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
+  }
+
+  const resetCart = () => {
+    setCart([])
+    setTotalPrice(0)
+    setAddressCompleted(false)
+    setOrderInfo(null)
+    setShippingAddress({
+      fullName: '',
+      address: '',
+      city: '',
+      postalCode: ''
+    })
+    localStorage.removeItem('cart')
+  }
+
+  const contextValue = {
+    setCart,
+    cart,
+    addBatch,
+    removeBatch,
+    shippingAddress,
+    setShippingAddress,
+    selectedCountry,
+    setSelectedCountry,
+    addressCompleted,
+    setAddressCompleted,
+    orderInfo,
+    setOrderInfo,
+    totalPrice,
+    allItemsShippable,
+    setUserInfoAsShippingAddress,
+    shippingError,
+    setShippingError,
+    validateAddress,
+    resetCart
+  }
+
+  return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
+}
+
+export default CartProvider
+
+export const useCartContext = (): CartContextType => {
+  const context = useContext(CartContext)
+  if (context === undefined) {
+    throw new Error('useCartContext must be used within a CartProvider')
+  }
+  return context
+}
+
+// File: src/data/categories.tsx
+export const categories = {
+  'chaise-velours': 'Chaise en velours',
+  'chaise-microfibre': 'Chaise en microfibre',
+  'chaise-tissu': 'Chaise en tissu',
+  'fauteuil-velours': 'Fauteuil en velours',
+  'fauteuil-microfibre': 'Fauteuil en microfibre',
+  'table-a-manger': 'Table à manger',
+  'table-haute-a-manger': 'Table haute à manger',
+  'table-basse-de-salon': 'Table basse de salon',
+  tabouret: 'Tabouret',
+  etagere: 'Étagère',
+  'meuble-tv': 'Meuble TV'
+}
+
+export default [
+  {
+    title: 'Chaises en velours',
+    background:
+      'https://www.meublerdesign.com/47236-rectangular_product/chaise-design-pivotante-livorno-grise-velours-pieds-en-hetre.jpg',
+    navigation: 'chaise-velours'
+  },
+  {
+    title: 'Chaises microfibre',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2F27ms9_own-filters-IjTqniVFP1Y-unsplash.jpg?alt=media&token=31044bc4-d190-431a-b926-fc7922f8c09b&_gl=1*1gzyoww*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTA4Ni4zNS4wLjA.',
+    navigation: 'chaise-microfibre'
+  },
+  {
+    title: 'Chaises en tissu',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2F27ms9_own-filters-IjTqniVFP1Y-unsplash.jpg?alt=media&token=31044bc4-d190-431a-b926-fc7922f8c09b&_gl=1*1gzyoww*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTA4Ni4zNS4wLjA.',
+    navigation: 'chaise-tissu'
+  },
+  {
+    title: 'Tabourets',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2F27ms9_own-filters-IjTqniVFP1Y-unsplash.jpg?alt=media&token=31044bc4-d190-431a-b926-fc7922f8c09b&_gl=1*1gzyoww*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTA4Ni4zNS4wLjA.',
+    navigation: 'tabouret'
+  },
+  {
+    title: 'Fauteuils en velours',
+
+    background: 'https://media.but.fr/images_produits/produit-zoom/4894223227995_AMB1.jpg',
+    navigation: 'fauteuil-velours'
+  },
+  {
+    title: 'Fauteuils microfibre',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'fauteuil-microfibre'
+  },
+  {
+    title: 'Tables à manger',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'table-a-manger'
+  },
+  {
+    title: 'Tables hautes à manger',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'table-haute-a-manger'
+  },
+  {
+    title: 'Tables basses de salon',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'table-basse-de-salon'
+  },
+  {
+    title: 'Étagères',
+
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'etagere'
+  },
+  {
+    title: 'Meubles TV',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'meuble-tv'
+  }
+]
+
+// File: src/data/works.js
+export default [
+  {
+    title: 'Chaise en velours',
+    imgUrl:
+      'https://firebasestorage.googleapis.com/v0/b/debt-666aa.appspot.com/o/sculpture.jpg?alt=media&token=723e3fcc-cbbe-4177-94df-94576a1e6458',
+    tech: ['Bois', 'Tuffeau'],
+    workUrl: 'sculptures'
+  },
+  {
+    title: 'Chaise microfibre',
+    imgUrl:
+      'https://firebasestorage.googleapis.com/v0/b/debt-666aa.appspot.com/o/lampes.jpg?alt=media&token=61bd9e89-a411-4305-85e9-1ee2407abfb1',
+    tech: ['Bois', 'Vinyl'],
+    workUrl: 'lampes'
+  },
+  {
+    title: 'Fauteuil en velours',
+    imgUrl:
+      'https://firebasestorage.googleapis.com/v0/b/debt-666aa.appspot.com/o/objets.jpg?alt=media&token=4cca4155-696c-4352-8a17-8b7712aa7f52',
+    tech: ['Vide poche', 'Porte Encens'],
+    workUrl: 'objets'
+  },
+  {
+    title: 'Fautueil en microfibre',
+    imgUrl:
+      'https://firebasestorage.googleapis.com/v0/b/debt-666aa.appspot.com/o/deco.jpg?alt=media&token=dace22e6-897f-4626-98e5-e5855156605a',
+    tech: ['Tableaux'],
+    workUrl: 'deco'
+  }
+]
+
+// File: src/firebase-config.ts
+import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
+
+const config = {
+  apiKey: 'AIzaSyAexrhrIjr9t8_jxNz7nT3Ft9pmA2fg67s',
+  authDomain: 'meublesbymi.firebaseapp.com',
+  projectId: 'meublesbymi',
+  storageBucket: 'meublesbymi.appspot.com',
+  messagingSenderId: '971133831930',
+  appId: '1:971133831930:web:fd4c71b237e8d354be5743',
+  measurementId: 'G-ZXSJP8T8SH'
+}
+
+const app = initializeApp(config)
+
+// var firebaseapp = null;
+
+// if (!firebase.apps.length) {
+//   firebaseapp = firebase.initializeApp(config);
+// } else {
+//   firebaseapp = firebase.app(); // if already initialized, use that one
+// }
+
+export const projectStorage = getStorage(app)
+export const projectFirestore = getFirestore(app)
+
+export const auth = getAuth(app)
+
+// File: src/hooks/init.js
+window.global ||= window;
+
+// File: src/hooks/uniqueFunction.ts
+//this is not actually a hook but i just put it here looks organized
+
+function getViewPort() {
+  var width: number = 0;
+  var height: number = 0;
+
+  // for browsers that support window like new ones
+  if (typeof window.innerWidth != "undefined") {
+    (width = window.innerWidth), (height = window.innerHeight);
+  }
+
+  // for internet explorer 6 in compatible mode
+  else if (
+    typeof document.documentElement != "undefined" &&
+    typeof document.documentElement.clientWidth != "undefined" &&
+    document.documentElement.clientWidth != 0
+  ) {
+    (width = document.documentElement.clientWidth),
+      (height = document.documentElement.clientHeight);
+  }
+
+  // for old browsers no one uses
+  else {
+    (width = document.getElementsByTagName("body")[0].clientWidth),
+      (height = document.getElementsByTagName("body")[0].clientHeight);
+  }
+
+  return [width, height];
+}
+
+export const uniqueFunction = (/* image:any */) => {
+  const aspectRatio = 1; /* image.width / image.height */
+  if (typeof window != "undefined") {
+    const viewPortDimensions = getViewPort();
+    const height = viewPortDimensions[1] - 160; // set image height equal to viewport height - space for navbar and padding
+    const width = height * aspectRatio + viewPortDimensions[0] / 100; // set image width according to original aspect ration of image + space for i don't know, also doesn't matter as image width can't excede column width of grid
+    return [width, height];
+  }
+};
+
+// File: src/hooks/useCategorie.ts
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+
+import { projectFirestore } from '../firebase-config'
+
+// useDatabase hook to fetch data from firestore using firebase version 9 modular
+
+const useCategories = (collectionName: string, limit: boolean, category) => {
+  const [images, setImages] = useState([])
+
+  useEffect(() => {
+    let isSubscribed = true
+
+    const fetchData = async () => {
+      const q = query(collection(projectFirestore, 'products'), where('categories', 'array-contains', category))
+      const querySnapshot = await getDocs(q)
+
+      let documents: any = []
+      querySnapshot.forEach((doc: any) => {
+        documents.push({ ...doc.data(), id: doc.id })
+      })
+
+      if (limit) {
+        documents = documents.filter((doc: any) => doc.forShowcase === true)
+      }
+      if (isSubscribed) {
+        setImages(documents)
+      }
+    }
+    fetchData()
+    return () => {
+      isSubscribed = false
+    }
+  }, [category])
+
+  return images
+}
+
+export default useCategories
+
+// File: src/hooks/useCreatePaymentIntent.ts
+import { useState } from 'react'
+
+// Custom hook to call the createPaymentIntent Firebase function
+function useCreatePaymentIntent() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [clientSecret, setClientSecret] = useState(null)
+
+  const createPaymentIntent = async (amount, currency) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Update the URL to match your Firebase function's endpoint
+      const response = await fetch(
+        `https://createpaymentintent-k4ks6w6uwq-uc.a.run.app?amount=${amount}&currency=${currency}`,
+        {
+          method: 'GET',
+          headers: {}
+        }
+      )
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const data = await response.json()
+
+      setClientSecret(data.clientSecret)
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { createPaymentIntent, loading, error, clientSecret }
+}
+
+export default useCreatePaymentIntent
+
+// File: src/hooks/useDatabase.ts
+import { collection, getDocs, query } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+
+import { projectFirestore } from '../firebase-config'
+
+// Updated useDatabase hook to fetch data and include Firestore references
+
+export const useCollectionName = (collectionName: string, limit: boolean) => {
+  const [images, setImages] = useState([])
+
+  useEffect(() => {
+    let isSubscribed = true
+
+    const fetchData = async () => {
+      const q = query(collection(projectFirestore, collectionName))
+      const querySnapshot = await getDocs(q)
+      let documents: any = []
+      querySnapshot.forEach((doc) => {
+        // Include the document reference in the stored object
+        documents.push({ ...doc.data(), id: doc.id, ref: doc.ref })
+      })
+
+      // Optionally filter documents if limit is true and the field `forShowcase` should be true
+      if (limit) {
+        documents = documents.filter((doc: any) => doc.forShowcase === true)
+      }
+
+      if (isSubscribed) {
+        setImages(documents)
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      isSubscribed = false // Cleanup to prevent setting state on unmounted component
+    }
+  }, [collectionName, limit]) // Include limit in the dependencies array if its changes should trigger re-fetching
+
+  return images
+}
+
+// File: src/hooks/useFilters.tsx
+import React, { createContext, useContext, useState } from 'react'
+
+const FilterContext = createContext()
+
+export const useFilter = () => {
+  return useContext(FilterContext)
+}
+
+export const FilterProvider = ({ children }) => {
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [sortByPrice, setSortByPrice] = useState(false)
+  const [sortOrder, setSortOrder] = useState('asc')
+
+  const values = {
+    selectedCategory,
+    setSelectedCategory,
+    sortByPrice,
+    setSortByPrice,
+    sortOrder,
+    setSortOrder
+  }
+
+  return <FilterContext.Provider value={values}>{children}</FilterContext.Provider>
+}
+
+// File: src/hooks/useMediaQuery.tsx
+import { useState, useEffect } from "react";
+
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+  }, [matches, query]);
+
+  return matches;
+};
+
+export default useMediaQuery;
+
+// File: src/hooks/useOrders.ts
+import { addDoc, collection, getDocs, query, where } from 'firebase/firestore'
+import { FirestoreError } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+
+import { Order } from '../components/types/types'
+import { projectFirestore } from '../firebase-config'
+
+const useOrders = () => {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchAllOrders()
+  }, [])
+
+  const fetchAllOrders = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ordersCollectionRef = collection(projectFirestore, 'orders')
+      const snapshot = await getDocs(query(ordersCollectionRef))
+      const fetchedOrders = snapshot.docs.map((doc) => ({
+        orderId: doc.id,
+        ...(doc.data() as Order)
+      }))
+
+      setOrders(fetchedOrders)
+    } catch (err) {
+      const firestoreError = err as FirestoreError
+      setError(`Error fetching orders: ${firestoreError.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addOrder = async (newOrder: Omit<Order, 'orderId'>) => {
+    console.log('🚀 ~ addOrder ~ newOrder:', newOrder)
+    setLoading(true)
+    setError(null)
+    try {
+      const ordersCollectionRef = collection(projectFirestore, 'orders')
+      const docRef = await addDoc(ordersCollectionRef, {
+        ...newOrder,
+        orderDate: newOrder.orderDate.toISOString() // Converting date to string for Firestore compatibility
+      })
+
+      setOrders((prev) => [...prev, { ...newOrder, orderId: docRef.id, orderDate: new Date(newOrder.orderDate) }])
+    } catch (err) {
+      const firestoreError = err as FirestoreError
+      setError(`Error adding new order: ${firestoreError.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchOrdersByUserId = async (userId: string) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ordersCollectionRef = collection(projectFirestore, 'orders')
+      const userQuery = query(ordersCollectionRef, where('userId', '==', userId))
+      const snapshot = await getDocs(userQuery)
+      const userOrders = snapshot.docs.map((doc) => ({
+        orderId: doc.id,
+        ...(doc.data() as Order)
+      }))
+
+      setOrders(userOrders)
+    } catch (err) {
+      const firestoreError = err as FirestoreError
+      setError(`Error fetching user's orders: ${firestoreError.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { orders, loading, error, addOrder, fetchOrdersByUserId }
+}
+
+export default useOrders
+
+// File: src/hooks/useSignin.ts
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { useState } from 'react'
+
+import { auth } from '../firebase-config' // Assuming auth is exported from firebase-config
+
+interface SignInData {
+  email: string
+  password: string
+}
+
+interface AuthResponse {
+  user: null | object
+  error: null | string
+}
+
+const useSignin = () => {
+  const [response, setResponse] = useState<AuthResponse>({ user: null, error: null })
+
+  const signin = async ({ email, password }: SignInData) => {
+    try {
+      // Sign in user
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      // Get the token from the signed-in user
+      const token = await user.getIdToken()
+
+      // Store the token in localStorage
+      localStorage.setItem('token', token)
+
+      setResponse({ ...response, user: user })
+    } catch (error: any) {
+      setResponse({ ...response, error: error.message })
+    }
+  }
+
+  return { ...response, signin }
+}
+
+export default useSignin
+
+// File: src/hooks/useSignup.ts
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { useState } from 'react'
+
+import { auth } from '../firebase-config' // Assuming auth is exported from firebase-config
+
+interface SignUpData {
+  email: string
+  password: string
+  displayName?: string
+}
+
+interface AuthResponse {
+  user: null | object
+  error: null | string
+}
+
+const useSignup = () => {
+  const [response, setResponse] = useState<AuthResponse>({ user: null, error: null })
+
+  const signup = async ({ email, password, displayName }: SignUpData) => {
+    try {
+      // Create user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      // Update profile if displayName is provided
+      if (displayName) {
+        await updateProfile(user, {
+          displayName: displayName
+        })
+      }
+
+      setResponse({ ...response, user: user })
+    } catch (error: any) {
+      setResponse({ ...response, error: error.message })
+    }
+  }
+
+  return { ...response, signup }
+}
+
+export default useSignup
+
+// File: src/hooks/useSingleDoc.ts
+import { doc, getDoc } from 'firebase/firestore'
+import { getDownloadURL, ref } from 'firebase/storage'
+import { useEffect, useState } from 'react'
+
+import { projectFirestore, projectStorage } from '../firebase-config'
+
+const useSingleDoc = (collectionName: string, id: string) => {
+  const [element, setElement] = useState<any>(null)
+
+  useEffect(() => {
+    let isSubscribed = true
+
+    const fetchData = async () => {
+      const docRef = doc(projectFirestore, collectionName, id)
+      const docSnap = await getDoc(docRef)
+
+      if (docSnap.exists()) {
+        const data = { ...docSnap.data(), id: docSnap.id, ref: docRef }
+
+        // Get download URL for the main image if it exists
+        if (data.main_image) {
+          try {
+            const mainImageRef = ref(projectStorage, data.main_image)
+            data.main_image = await getDownloadURL(mainImageRef)
+          } catch (error) {
+            console.error('Error downloading main image:', error)
+            // Optionally handle errors or set a default image
+          }
+        }
+
+        // Fetch URLs for related images if they exist
+        if (data.related_images && data.related_images.length > 0) {
+          try {
+            const relatedImageUrls = await Promise.all(
+              data.related_images.map(async (image) => {
+                const imageRef = ref(projectStorage, image)
+                return await getDownloadURL(imageRef)
+              })
+            )
+            data.related_images = relatedImageUrls
+          } catch (error) {
+            console.error('Error downloading related images:', error)
+            data.related_images = []
+          }
+        } else {
+          data.related_images = []
+        }
+
+        // Fetch URLs for color images if they exist
+        if (data.color_images && data.color_images.length > 0) {
+          try {
+            const colorImageUrls = await Promise.all(
+              data.color_images.map(async (item) => {
+                if (item.image) {
+                  const imageRef = ref(projectStorage, item.image)
+                  const imageUrl = await getDownloadURL(imageRef)
+                  return { ...item, image: imageUrl } // Return color with updated URL
+                }
+                return item // Return item as is if no image to process
+              })
+            )
+            data.color_images = colorImageUrls
+          } catch (error) {
+            console.error('Error downloading color images:', error)
+            data.color_images = []
+          }
+        } else {
+          data.color_images = []
+        }
+
+        if (isSubscribed) {
+          setElement(data)
+        }
+      } else {
+        console.log('No such document!')
+        if (isSubscribed) {
+          setElement(null)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      isSubscribed = false // Cleanup to prevent setting state on unmounted component
+    }
+  }, [collectionName, id])
+
+  return element
+}
+
+export default useSingleDoc
+
+// File: src/hooks/useStorage.ts
+import { useState, useEffect } from "react";
+
+import { nanoid } from "nanoid";
+import {
+  projectFirestore,
+  projectStorage,
+  timeStamp,
+} from "../firebase-config";
+
+const useStorage = (file: any) => {
+  const [progress, setProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<any | null>(null);
+  const [url, setUrl] = useState(null);
+
+  useEffect(() => {
+    //references
+    const storageRef = projectStorage.ref(`${nanoid()}-${file.label}`);
+    const collection = projectFirestore.collection("images");
+    storageRef.put(file.image).on(
+      "state_changed",
+      (snap) => {
+        let progress = (snap.bytesTransferred / snap.totalBytes) * 100;
+        setProgress(progress);
+        console.log(progress);
+      },
+      (error) => {
+        setUploadError(error);
+        console.log(error);
+      },
+      async () => {
+        const url = await storageRef.getDownloadURL();
+        collection.add({
+          url: url,
+          label: file.label,
+          description: file.description,
+          forShowcase: file.forShowcase,
+          createdAt: Date.now(),
+          category: file.category,
+        });
+        console.log(url);
+
+        setUrl(url);
+      }
+    );
+  }, [file]);
+
+  return { progress, url, uploadError };
+};
+
+export default useStorage;
+
+// File: src/hooks/useUsers.ts
+import { DocumentReference, addDoc, collection, doc, getDoc, getDocs, query } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+
+import { projectFirestore } from '../firebase-config'
+
+interface User {
+  email: string
+  passwordHash: string
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+  userId?: string
+  ref?: DocumentReference
+}
+
+export const useUsers = () => {
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const usersCollectionRef = collection(projectFirestore, 'users')
+        const querySnapshot = await getDocs(query(usersCollectionRef))
+        const fetchedUsers: User[] = querySnapshot.docs.map((doc) => ({
+          ref: doc.ref,
+          ...(doc.data() as User)
+        }))
+        setUsers(fetchedUsers)
+      } catch (err) {
+        setError('Erreur lors de la récupération des utilisateurs : ' + err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [])
+
+  const getUserById = async (id) => {
+    setLoading(true)
+
+    const docRef = doc(projectFirestore, 'users', id)
+    const docSnap = await getDoc(docRef)
+
+    if (!docSnap.exists()) {
+      console.log('error to get user')
+      return
+    }
+    setLoading(false)
+
+    const user = { ...docSnap.data(), ref: docRef }
+    return user
+  }
+
+  const addUser = async (userData: User) => {
+    setLoading(true)
+    try {
+      const docRef = await addDoc(collection(projectFirestore, 'users'), userData)
+      setLoading(false)
+      return {
+        ...userData,
+        userId: docRef.id,
+        ref: docRef
+      }
+    } catch (err) {
+      setError("Erreur lors de l'ajout d'un nouvel utilisateur : " + err.message)
+      setLoading(false)
+      return null
+    }
+  }
+
+  return { users, addUser, getUserById, loading, error }
+}
+
+export default useUsers
+
+// File: src/layouts/Layout.tsx
+import 'react-toastify/dist/ReactToastify.css'
+
+import React from 'react'
+import { ToastContainer } from 'react-toastify'
+
+import { HeaderBar } from '../components/menu/HeaderBar'
+
+export const Layout = ({ children }) => {
+  return (
+    <>
+      <ToastContainer theme="colored" autoClose={1000} />
+
+      <div className="bg-white min-h-screen font-inter transition duration-1000 ease-in-out">
+        <HeaderBar />
+        <div className="max-w-8xl  mx-auto px-4 lg:px-8 lg:pt-4">{children}</div>
+      </div>
+    </>
+  )
+}
+
+// File: src/main.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./styles/tailwind.css";
+import { Router } from "./router/Router";
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    <Router />
+  </React.StrictMode>
+);
+
+// File: src/pages/Cart.tsx
+import React from 'react'
+
+import CartItemList from '../components/cart/CartItemList'
+import CartShipping from '../components/cart/CartShipping'
+import EmptyCart from '../components/cart/EmptyCart'
+import PriceDisplay from '../components/cart/price/PriceDisplay'
+import UserAuthentication from '../components/Users/UserAuthentication'
+import { useAuth } from '../context/AuthContext'
+import { useCartContext } from '../context/CartContext'
+
+const Cart: React.FC = () => {
+  const { cart, totalPrice, setAddressCompleted, validateAddress } = useCartContext()
+
+  const { currentUser } = useAuth()
+
+  if (cart.length === 0) {
+    return <EmptyCart />
+  }
+
+  return (
+    <div className="my-10 p-6 bg-gray-100 rounded-lg">
+      <div className="md:grid md:grid-cols-2 gap-6 gap-y-10">
+        <CartItemList />
+        {!currentUser ? <UserAuthentication /> : <CartShipping />}
+      </div>
+      <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between items-center shadow-lg z-50 mt-4">
+        <PriceDisplay totalPrice={totalPrice} />
+        <button
+          className="bg-white text-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-300"
+          onClick={() => validateAddress()}
+        >
+          Passer au paiment
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default Cart
+
+// File: src/pages/Category.tsx
+import React from 'react'
+import { useParams } from 'react-router-dom'
+
+import { DisplayCategory } from '../components/DisplayCategorie'
+import { SectionTitle } from '../components/SectionTitle'
+
+export const Category = () => {
+  const params = useParams()
+  if (!params) {
+    return <div>404</div>
+  }
+  return (
+    <section className="py-8 col-span-10 col-start-2 col-end-12">
+      <SectionTitle id="showcase">{params.category?.toUpperCase()}</SectionTitle>
+      <main className="py-8  grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 w-full">
+        <DisplayCategory limit={false} category={params.category}></DisplayCategory>
+      </main>
+    </section>
+  )
+}
+
+// File: src/pages/ConfirmationPage.tsx
+import emailjs from '@emailjs/browser'
+import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import CartItem from '../components/cart/CartItemBatchDisplay'
+import { useAuth } from '../context/AuthContext'
+import { useCartContext } from '../context/CartContext'
+
+emailjs.init({
+  publicKey: 'DsyslrqbT-Wcnl4Oe',
+  blockHeadless: true,
+  limitRate: {
+    id: 'app',
+    throttle: 10000
+  }
+})
+
+export const ConfirmationPage = () => {
+  const { cart, resetCart } = useCartContext()
+  const navigate = useNavigate()
+  const { currentUser } = useAuth()
+
+  useEffect(() => {
+    if (cart.length > 0) {
+      sendConfirmationEmail()
+    }
+  }, [cart])
+
+  const backToHome = () => {
+    localStorage.removeItem('cart')
+    resetCart()
+    navigate('/')
+  }
+
+  const sendConfirmationEmail = () => {
+    const templateParams = {
+      user_email: currentUser.email,
+      items: cart.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      total_price: cart.reduce((total, current) => total + current.price * current.quantity, 0).toFixed(2)
+    }
+
+    emailjs
+      .send('service_65xlyy8', 'order_confirmation', templateParams)
+      .then((response) => {
+        console.log('Email successfully sent!', response.status, response.text)
+      })
+      .catch((err) => {
+        console.error('Failed to send email. Error:', err)
+      })
+  }
+
+  return (
+    <div className="container mx-auto p-6 mt-10 mb-20 max-w-4xl bg-white shadow-lg rounded-lg border-2 border-black">
+      <h1 className="text-3xl font-bold mb-8 text-center">Merci pour votre achat !</h1>
+      <div className="p-6 rounded-lg">
+        <h2 className="text-2xl font-semibold mb-6">Récapitulatif de votre commande</h2>
+        {cart.map((item, index) => (
+          <CartItem key={index} item={item} onRemove={() => {}} selectedCountry="Belgique" />
+        ))}
+        <div className="mt-10 text-center">
+          <button
+            onClick={() => backToHome()}
+            className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-150"
+          >
+            Retour à l'accueil
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// File: src/pages/Contact.tsx
+import { faFacebook, faInstagram, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import React from 'react'
+
+export const Contact = () => {
+  return (
+    <div className="p-8 bg-slate-800 text-center text-gray-300 rounded-lg mt-10">
+      <div className="md:flex md:justify-between md:items-center">
+        <div className="md:w-1/2 md:text-left mb-4 md:mb-0 flex justify-center items-center gap-4">
+          <a href="#" className="text-gray-500 hover:text-indigo-500 mx-2">
+            <FontAwesomeIcon icon={faFacebook} size="4x" />
+          </a>
+          <a href="#" className="text-gray-500 hover:text-indigo-500 mx-2">
+            <FontAwesomeIcon icon={faTwitter} size="4x" />
+          </a>
+          <a href="#" className="text-gray-500 hover:text-indigo-500 mx-2">
+            <FontAwesomeIcon icon={faInstagram} size="4x" />
+          </a>
+        </div>
+
+        <form className="md:w-1/2">
+          <label htmlFor="email" className="block text-sm md:text-md">
+            Adresse e-mail :
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            className="w-full px-4 py-2 mt-1 text-gray-900 border rounded-md focus:outline-none focus:ring focus:border-indigo-300"
+            placeholder="Entrez votre adresse e-mail"
+            required
+          />
+
+          <label htmlFor="message" className="block mt-4 text-sm md:text-md">
+            Message :
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            rows="4"
+            className="w-full px-4 py-2 mt-1 text-gray-900 border rounded-md resize-none focus:outline-none focus:ring focus:border-indigo-300"
+            placeholder="Écrivez votre message"
+            required
+          ></textarea>
+
+          <button
+            type="submit"
+            className="w-full mt-4 bg-indigo-500 text-white rounded-md px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600 focus:outline-none focus:ring focus:border-indigo-300"
+          >
+            Envoyer le message
+          </button>
+        </form>
+      </div>
+
+      <p className="text-sm mt-6 text-gray-500">© Colin Champdavoine 2023</p>
+    </div>
+  )
+}
+
+// File: src/pages/Home.tsx
+import '../hooks/init'
+
+import React from 'react'
+
+import { Categories } from '../components/categories/Categories'
+import ProductsShowCase from '../components/categories/ProductsShowCase'
+
+export const Home = () => {
+  return (
+    <>
+      <Categories />
+      <ProductsShowCase limit={true} />
+    </>
+  )
+}
+
+// File: src/pages/ProductDetail.tsx
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import Lightbox from 'yet-another-react-lightbox'
+
+import PriceDisplay from '../components/cart/price/PriceDisplay'
+import { PriceOptionModal } from '../components/cart/price/PriceOptionModal'
+import { NumberInput } from '../components/common/inputs/NumberInput'
+import { Loader } from '../components/common/Loader'
+import { BatchItem, Product } from '../components/types/types'
+import { useCartContext } from '../context/CartContext'
+import useSingleDoc from '../hooks/useSingleDoc'
+import { calculatePriceByColor, calculateStandardPrice, calculateTotalPrice } from '../utils/prices'
+
+const ProductDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([])
+  const [openModal, setOpenModal] = useState(false)
+  const [mainImage, setMainImage] = useState<string>('')
+  const [defaultQuantity, setDefaultQuantity] = useState<number>(0)
+  const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [standardPrice, setStandardPrice] = useState<number>(0)
+  const navigate = useNavigate()
+
+  const { addBatch } = useCartContext()
+
+  const product: Product = useSingleDoc('products', id)
+
+  const productHasShippingOptions = product?.shippingOptions && product.shippingOptions.France > 0
+
+  const productHasColorPrice =
+    product?.color_images &&
+    product.color_images.length > 0 &&
+    product.color_images[0].price !== null &&
+    product.color_images[0].price !== 0
+
+  console.log('BATCH ITEMS', batchItems)
+  console.log('PRICES', totalPrice, standardPrice, 'HASCOLOR', productHasColorPrice)
+
+  useEffect(() => {
+    if (product) {
+      if (productHasColorPrice) {
+        setTotalPrice(calculatePriceByColor(batchItems, product.color_images))
+      }
+      if (product.priceOptions && product.priceOptions.length > 0) {
+        setTotalPrice(calculateTotalPrice(batchItems, product.priceOptions || []))
+      }
+      setStandardPrice(calculateStandardPrice(batchItems, product.priceOptions || []))
+    }
+  }, [batchItems, product])
+
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.main_image)
+      if (product.color_images && product.color_images.length > 0) {
+        setBatchItems(product.color_images.map((ci) => ({ ...ci, quantity: 0 })))
+      }
+    }
+  }, [product])
+
+  if (!product) {
+    return <Loader />
+  }
+
+  const handleColorQuantityChange = (color: string, quantity: number) => {
+    setBatchItems(
+      batchItems.map((item) => {
+        if (item.color === color) {
+          return { ...item, quantity }
+        }
+        return item
+      })
+    )
+  }
+
+  const handleBuyClick = () => {
+    let quantitiesError = false
+
+    batchItems.forEach((item) => {
+      if (item.quantity > item.availableQuantity) {
+        toast.error(`Il ne reste que ${item.availableQuantity} exemplaires de ${product.name} en ${item.color}`)
+        quantitiesError = true
+      }
+    })
+
+    if (quantitiesError) {
+      return
+    }
+
+    if ((batchItems.length === 0 && defaultQuantity <= 0) || totalPrice <= 0) {
+      toast.error("Veuillez spécifier une quantité avant d'ajouter au panier.")
+      return
+    }
+
+    const itemToAdd = {
+      id: product.id,
+      name: product.name,
+      variants: batchItems.filter((item) => item.quantity > 0),
+      ref: product.ref,
+      priceOption: product.priceOptions,
+      color_images: product.color_images,
+      shippingOptions: product.shippingOptions
+    }
+
+    addBatch([itemToAdd])
+    setBatchItems(batchItems.map((item) => ({ ...item, quantity: 0 }))) // Reset quantities after adding to cart
+    if (batchItems.length === 0) {
+      setDefaultQuantity(0) // Reset default quantity
+    }
+    toast.success('Lot ajouté au panier')
+    navigate('/')
+  }
+
+  const handleImageClick = (image?: string) => {
+    if (!image) {
+      return
+    }
+    setMainImage(image)
+  }
+
+  return (
+    <div className="bg-white text-black relative pb-20">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 p-4">
+        <div className="flex flex-col col-span-4 items-center relative">
+          <img
+            onClick={() => setLightboxOpen(true)}
+            src={mainImage}
+            alt={product.name}
+            className="h-full rounded-lg shadow-md"
+          />
+          <button
+            className="absolute bottom-4 bg-black text-white text-sm font-bold uppercase px-6 py-2 rounded shadow hover:bg-gray-900"
+            onClick={() => setLightboxOpen(true)}
+          >
+            Voir en grand format
+          </button>
+        </div>
+        <div className="col-span-3 lg:col-span-3 md:col-span-2">
+          <div className="border-2 border-black p-4 rounded bg-gray-100 h-full">
+            <div className="flex flex-col justify-center align-items p-4 bg-gray-100 rounded-md">
+              <div className="flex justify-between w-full">
+                <h1 className="text-3xl font-bold capitalize">{product.name}</h1>
+              </div>
+              {!productHasShippingOptions && (
+                <div className="w-fit my-2 p-2 rounded-full bg-green-300 text-black-500 font-semibold">
+                  LIVRAISON GRATUITE
+                </div>
+              )}
+              {product.priceOptions && product.priceOptions.length > 0 && (
+                <button
+                  className="bg-white text-black border-2 border-black font-medium uppercase px-6 py-3 rounded shadow hover:bg-gray-900 hover:text-white mt-4"
+                  onClick={() => setOpenModal(true)}
+                >
+                  Voir les options de prix
+                </button>
+              )}
+              {product.priceOptions && product.priceOptions.length > 0 && (
+                <PriceOptionModal isOpen={openModal} setIsOpen={setOpenModal} productOption={product.priceOptions} />
+              )}
+            </div>
+            {batchItems.length > 0 ? (
+              <div>
+                <h1 className="text-xl font-bold my-4">Choisissez vos couleurs :</h1>
+                {batchItems.map((item, index) => (
+                  <div
+                    onClick={() => handleImageClick(item.image)}
+                    key={index}
+                    className="cursor-pointer flex flex-row items-center justify-between p-2 bg-gray-100 rounded"
+                  >
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      {item.price && (
+                        <span className="font-semibold rounded-full bg-red-500 p-2 text-white">{item.price} €</span>
+                      )}
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={`Image of ${item.color}`}
+                          className="h-16 w-16 rounded-full shadow"
+                        />
+                      )}
+                      <span className="font-semibold">{item.color}</span>
+                    </div>
+                    <NumberInput
+                      value={item.quantity}
+                      onChange={(value) => handleColorQuantityChange(item.color, value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="cursor-pointer flex flex-row items-center justify-between p-2 bg-gray-100 rounded">
+                <img
+                  src={product.main_image}
+                  alt={`Image of ${product.name}`}
+                  className="h-16 w-16 rounded-full shadow"
+                />
+                <NumberInput value={defaultQuantity} onChange={setDefaultQuantity} />
+              </div>
+            )}
+            {product.description && (
+              <>
+                <h1 className="text-xl font-bold my-4">Description :</h1>
+                <p className="text-gray-700 mb-4">{product.description}</p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      {totalPrice > 0 && (
+        <div className="fixed inset-x-0 bottom-0 bg-black text-white p-4 flex justify-between lg:justify-center lg:gap-2 items-center shadow-lg z-50 mt-8">
+          <PriceDisplay totalPrice={totalPrice} standardPrice={standardPrice} />
+          <button
+            className="bg-white text-black font-medium uppercase px-2 py-3 rounded shadow hover:bg-gray-300"
+            onClick={handleBuyClick}
+          >
+            Ajouter le lot au panier
+          </button>
+        </div>
+      )}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={[
+          { src: product.main_image },
+          ...product.related_images.map((ri) => ({ src: ri })),
+          ...product.color_images.map((ci) => ({ src: ci.image }))
+        ]}
+      />
+    </div>
+  )
+}
+
+export default ProductDetail
+
+// File: src/router/AnonymousRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom'
+
+import { useApp } from '../contexts/AppContext/AppContext'
+
+interface Props {
+  children?: JSX.Element
+}
+
+export const AnonymousRoute = ({ children }: Props) => {
+  const {
+    state: { isAuthenticated }
+  } = useApp()
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return children ? children : <Outlet />
+}
+
+// File: src/router/ProtectedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom'
+
+import { useApp } from '../contexts/AppContext/AppContext'
+
+interface Props {
+  children?: JSX.Element
+}
+
+export const ProtectedRoute = ({ children }: Props) => {
+  const {
+    state: { isAuthenticated }
+  } = useApp()
+
+  if (!isAuthenticated) {
+    return <Navigate to="/connexion" replace />
+  }
+
+  return children ? children : <Outlet />
+}
+
+// File: src/router/Router.tsx
+import { loadStripe } from '@stripe/stripe-js'
+import React from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
+import Admin from '../admin/Admin'
+import { AuthProvider } from '../context/AuthContext'
+import CartProvider from '../context/CartContext'
+import { FilterProvider } from '../hooks/useFilters'
+import { Layout } from '../layouts/Layout'
+import { routesConfig } from './RoutesConfig'
+
+export const stripePromise = loadStripe(
+  'pk_test_51OeZoPLTfd10N7e5WDyEMkGQ6SSFVTeujXqBMbvTdMgmCT6fubXo40e4prZs9i5usLToLX6mnp3BGTDF40vtiqj4004189Kdu7'
+)
+
+export const Router = () => {
+  const [isAdmin, setIsAdmin] = React.useState(false)
+  const params = new URLSearchParams(window.location.search)
+
+  React.useEffect(() => {
+    if (params.get('admin')) {
+      setIsAdmin(true)
+    }
+  }, [params])
+
+  const publicRoutes = routesConfig.filter((route) => !route.isProtected && !route.isAnonymous)
+  const anonymousRoutes = routesConfig.filter((route) => route.isAnonymous)
+  const protectedRoutes = routesConfig.filter((route) => route.isProtected)
+
+  return isAdmin ? (
+    <Admin />
+  ) : (
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <FilterProvider>
+            <Layout>
+              <Routes>
+                {publicRoutes.map((route) => (
+                  <Route key={route.name} path={route.path} element={route.component} />
+                ))}
+              </Routes>
+            </Layout>
+          </FilterProvider>
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
+  )
+}
+
+// File: src/router/RoutesConfig.tsx
+import React from 'react'
+
+import Admin from '../admin/Admin'
+import ProductCategory from '../components/categories/ProductCategory'
+import { SignInForm } from '../components/Users/SignInForm'
+import { SignUpForm } from '../components/Users/SignUpForm'
+import UserOrdersPage from '../components/Users/UserOrders'
+import Cart from '../pages/Cart'
+import { ConfirmationPage } from '../pages/ConfirmationPage'
+import { Contact } from '../pages/Contact'
+import { Home } from '../pages/Home'
+import ProductDetail from '../pages/ProductDetail'
+
+interface Route {
+  name: string
+  path: string
+  component: JSX.Element
+  isAnonymous?: boolean
+  isProtected?: boolean
+}
+
+export const routesConfig: Route[] = [
+  {
+    name: 'home',
+    path: '/',
+    component: <Home />
+  },
+  {
+    name: 'Product',
+    path: '/product/:id',
+    component: <ProductDetail />
+  },
+  {
+    name: 'Categories',
+    path: '/categories/:category',
+    component: <ProductCategory />
+  },
+  {
+    name: 'Cart',
+    path: '/cart',
+    component: <Cart />
+  },
+  {
+    name: 'contact',
+    path: '/contact',
+    component: <Contact />
+  },
+  {
+    name: 'signin',
+    path: '/signin/:redirect?',
+    component: <SignInForm />
+  },
+  {
+    name: 'signup',
+    path: '/signup/:redirect?',
+    component: <SignUpForm />
+  },
+  {
+    name: 'confirmation',
+    path: '/confirmation',
+    component: <ConfirmationPage />
+  },
+  {
+    name: 'user-profile',
+    path: '/profile',
+    component: <UserOrdersPage />
+  },
+  {
+    name: 'admin',
+    path: '/admin',
+    component: <Admin />
+  }
+]
+
+// File: src/styles/tailwind.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// File: src/utils/firebaseUtils.ts
+// function that create dowmload url from firebase storage path
+
+import { ref, getDownloadURL } from "firebase/storage";
+import { projectStorage } from "../firebase-config";
+
+export const getDownloadUrl = async (path: string) => {
+  const storageRef = ref(projectStorage, path);
+  const url = await getDownloadURL(storageRef);
+  return url;
+};
+
+// File: src/utils/prices.ts
+import { BatchItem, CartItem, ColorImage, Country, PriceRow } from '../components/types/types'
+
+export const calculatePriceByColor = (batchItems: BatchItem[], colorImages: ColorImage[]): number => {
+  console.log('🚀 ~ calculatePriceByColor ~ colorImages:', colorImages)
+  return batchItems.reduce((total, item) => {
+    const correspondingColorImage = colorImages.find((ci) => ci.color === item.color)
+    if (!correspondingColorImage) {
+      return total
+    }
+    return total + correspondingColorImage.price * item.quantity
+  }, 0)
+}
+
+export const calculateStandardPrice = (batchItems: BatchItem[], priceOptions: PriceRow[]): number => {
+  if (priceOptions.length === 0) {
+    return 0
+  }
+  const totalQuantity = batchItems.reduce((total, item) => total + item.quantity, 0)
+  const sortedPriceOptions = priceOptions.sort((a, b) => parseInt(a.quantity) - parseInt(b.quantity))
+  const smallestUnitPrice = parseInt(sortedPriceOptions[0].price)
+
+  return totalQuantity * smallestUnitPrice
+}
+
+export const calculateTotalPrice = (batchItems: BatchItem[], priceOptions: PriceRow[]): number => {
+  console.log('🚀 ~ calculateTotalPrice ~ priceOptions:', priceOptions)
+  const totalQuantity = batchItems.reduce((total, item) => total + item.quantity, 0)
+  const correspondingPriceOption = priceOptions.find((po) => parseInt(po.quantity) === totalQuantity)
+
+  if (!correspondingPriceOption) {
+    return calculateStandardPrice(batchItems, priceOptions)
+  }
+
+  return parseInt(correspondingPriceOption?.price || '0')
+}
+
+export const calculateCartPrice = (cart: CartItem[], country: Country): number => {
+  return cart.reduce((total, item) => {
+    const totalPrice = calculateTotalPrice(item.variants, item.priceOption || [])
+    const shippingCost = item.shippingOptions[country] ?? 10 // Default shipping cost if not defined
+
+    return total + totalPrice + shippingCost
+  }, 0)
+}
+

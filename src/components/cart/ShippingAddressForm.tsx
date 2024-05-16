@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { useCartContext } from '../../context/CartContext'
+import Button from '../common/Button'
 import { Country, ShippingAddress } from '../types/types'
 
 export const ShippingAddressForm = ({
@@ -16,16 +17,15 @@ export const ShippingAddressForm = ({
 }) => {
   const { selectedCountry, setSelectedCountry } = useCartContext()
   return (
-    <div className="p-4 bg-gray-50 border-2 border-black rounded-md">
+    <div className="p-4 bg-gray-50 border-2 border-black rounded-md ">
       <form className="space-y-4">
         <h3 className="text-lg font-medium mb-4">Adresse de Livraison</h3>
-        <button
-          type="button"
+        <Button
           onClick={fillAddressWithUser}
           className="btn btn-secondary w-full bg-gray-200 text-black py-2 px-4 rounded-md hover:bg-gray-300 transition duration-150 ease-in-out"
         >
           Remplir avec mes informations
-        </button>
+        </Button>
         <input
           type="text"
           name="fullName"

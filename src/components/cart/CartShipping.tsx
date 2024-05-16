@@ -20,6 +20,8 @@ const CartShipping: React.FC = () => {
   } = useCartContext()
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
     setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value })
   }
 
