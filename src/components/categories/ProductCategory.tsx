@@ -3,67 +3,82 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { categories } from '../../data/categories'
 import useCategories from '../../hooks/useCategorie'
+import useMediaQuery from '../../hooks/useMediaQuery'
 import { getDownloadUrl } from '../../utils/firebaseUtils'
-import { Loader } from '../common/Loader'
 import { SectionTitle } from '../common/SectionTitle'
 import ProductCard from '../products/ProductCard'
 import { Product } from '../types/types'
 
-export interface ProductCategoryProps {
+export interface ShowcaseProps {
   limit: boolean
 }
 
-export const ProductCategory: React.SFC<ProductCategoryProps> = ({ limit }) => {
-  const { category } = useParams()
+export const ProductCategory: React.FC<ShowcaseProps> = ({ limit }) => {
   const [images, setImages] = useState<Product[]>([])
-  const [index, setIndex] = useState<number>(-1)
-  const elements: Product[] = useCategories('products', false, category)
+  const [index, setIndex] = useState(-1)
+  const { category } = useParams()
+  const elements: Product[] = useCategories('products', limit, category)
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [sortByPrice, setSortByPrice] = useState(false)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const navigate = useNavigate()
-
   useEffect(() => {
-    const promises = elements.map((element: Product) => {
-      return getDownloadUrl(element.main_image)
-    })
-    Promise.all(promises).then((urls) => {
-      const newImages = urls.map((url, index) => {
-        return {
-          src: url,
-          id: elements[index].id,
-          name: elements[index].name,
-          description: elements[index].description,
-          related_images: elements[index].related_images,
-          price: elements[index].priceOptions[0].price,
-          promotion: elements[index].promotion,
-          new: elements[index].new
-        }
+    if (elements.length > 0) {
+      const promises = elements.map((element) => {
+        return getDownloadUrl(element.main_image)
       })
-      setImages(newImages)
-    })
-  }, [category, elements])
+      Promise.all(promises).then((urls) => {
+        const newImages = urls.map((url, index) => {
+          return {
+            src: url,
+            id: elements[index].id,
+            name: elements[index].name,
+            categories: elements[index].categories,
+            description: elements[index].description,
+            price: elements[index]?.priceOptions?.[0]?.price || elements[index].color_images?.[0].price || 0,
+            published: elements[index].published,
+            promotion: elements[index].promotion,
+            new: elements[index].new,
+            color_images: elements[index].color_images
+          }
+        })
+        setImages(newImages)
+      })
+    }
+  }, [elements])
+
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   return (
     <>
-      <SectionTitle id="category">{categories[category]}</SectionTitle>
-      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-8">
-        {images.length !== 0 ? (
-          images.map((image, index) => (
+      <section className="py-4 col-span-10 col-start-2 col-end-12">
+        <SectionTitle id="showcase">{categories?.[category]}</SectionTitle>
+        {/* <FilterBar
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          sortByPrice={sortByPrice}
+          setSortByPrice={setSortByPrice}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+        /> */}
+        <main className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {images.map((image, index) => (
             <ProductCard
               key={index}
               src={image.src}
               name={image.name}
-              price={image.price}
+              price={image.price || image}
               id={image.id}
               description={image.description}
               promotion={image.promotion}
               new={image.new}
-              onClick={() => navigate(`/product/${image.id}`)}
+              colorNb={image?.color_images?.length || 0}
+              onClick={(id) => navigate(`/product/${image.id}`)}
             />
-          ))
-        ) : (
-          <Loader />
-        )}
-      </main>
+          ))}
+        </main>
+      </section>
     </>
   )
 }
