@@ -3,26 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { categories } from '../../data/categories'
 import useCategories from '../../hooks/useCategorie'
-import useMediaQuery from '../../hooks/useMediaQuery'
 import { getDownloadUrl } from '../../utils/firebaseUtils'
 import { SectionTitle } from '../common/SectionTitle'
 import ProductCard from '../products/ProductCard'
-import { Product } from '../types/types'
+import { Product, ProductCardType } from '../types/types'
 
-export interface ShowcaseProps {
-  limit: boolean
-}
-
-export const ProductCategory: React.FC<ShowcaseProps> = ({ limit }) => {
-  const [images, setImages] = useState<Product[]>([])
-  const [index, setIndex] = useState(-1)
+const ProductCategory: React.FC = () => {
+  const [images, setImages] = useState<ProductCardType[]>([])
   const { category } = useParams()
-  const elements: Product[] = useCategories('products', limit, category)
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [sortByPrice, setSortByPrice] = useState(false)
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const elements: Product[] = useCategories('products', category)
 
   const navigate = useNavigate()
+
   useEffect(() => {
     if (elements.length > 0) {
       const promises = elements.map((element) => {
@@ -31,15 +23,13 @@ export const ProductCategory: React.FC<ShowcaseProps> = ({ limit }) => {
       Promise.all(promises).then((urls) => {
         const newImages = urls.map((url, index) => {
           return {
-            src: url,
+            main_image: url,
             id: elements[index].id,
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
             price: elements[index]?.priceOptions?.[0]?.price || elements[index].color_images?.[0].price || 0,
             published: elements[index].published,
-            promotion: elements[index].promotion,
-            new: elements[index].new,
             color_images: elements[index].color_images
           }
         })
@@ -48,31 +38,23 @@ export const ProductCategory: React.FC<ShowcaseProps> = ({ limit }) => {
     }
   }, [elements])
 
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  if (!category) {
+    return null
+  }
 
   return (
     <>
       <section className="py-4 col-span-10 col-start-2 col-end-12">
         <SectionTitle id="showcase">{categories?.[category]}</SectionTitle>
-        {/* <FilterBar
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          sortByPrice={sortByPrice}
-          setSortByPrice={setSortByPrice}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-        /> */}
         <main className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {images.map((image, index) => (
             <ProductCard
               key={index}
-              src={image.src}
+              src={image.main_image}
               name={image.name}
               price={image.price || image}
               id={image.id}
               description={image.description}
-              promotion={image.promotion}
-              new={image.new}
               colorNb={image?.color_images?.length || 0}
               onClick={(id) => navigate(`/product/${image.id}`)}
             />

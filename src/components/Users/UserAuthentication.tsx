@@ -13,7 +13,7 @@ const UserAuthentication: React.FC = () => {
       <Button color="light" onClick={() => navigate('/signin/redirect')}>
         Se connecter
       </Button>
-      <Button color="light" onClick={() => navigate('/signup/redirect')}>
+      <Button className="bg-gray-300 " color="light" onClick={() => navigate('/signup/redirect')}>
         S'inscrire
       </Button>
     </div>

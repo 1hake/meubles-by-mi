@@ -2,6 +2,7 @@ import React from 'react'
 
 import Admin from '../admin/Admin'
 import ProductCategory from '../components/categories/ProductCategory'
+import ProductsShowCase from '../components/categories/ProductsShowCase'
 import { SignInForm } from '../components/Users/SignInForm'
 import { SignUpForm } from '../components/Users/SignUpForm'
 import UserOrdersPage from '../components/Users/UserOrders'
@@ -29,6 +30,11 @@ export const routesConfig: Route[] = [
     name: 'Product',
     path: '/product/:id',
     component: <ProductDetail />
+  },
+  {
+    name: 'All Products',
+    path: '/products',
+    component: <ProductsShowCase />
   },
   {
     name: 'Categories',

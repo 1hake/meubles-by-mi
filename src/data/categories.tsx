@@ -14,6 +14,12 @@ export const categories = {
 
 export default [
   {
+    title: 'Tous les produits',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2F27ms9_own-filters-IjTqniVFP1Y-unsplash.jpg?alt=media&token=31044bc4-d190-431a-b926-fc7922f8c09b&_gl=1*1gzyoww*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTA4Ni4zNS4wLjA.',
+    navigation: 'products'
+  },
+  {
     title: 'Chaises en velours',
     background:
       'https://www.meublerdesign.com/47236-rectangular_product/chaise-design-pivotante-livorno-grise-velours-pieds-en-hetre.jpg',

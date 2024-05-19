@@ -51,7 +51,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </div>
         {batchItems.length > 0 ? (
           <div>
-            <h1 className="text-xl font-bold my-4">Choisissez vos couleurs :</h1>
+            <h1 className="text-xl font-bold my-4">Choisissez vos couleurs/tailles :</h1>
             {batchItems.map((item, index) => (
               <div
                 onClick={() => handleImageClick(item.image)}

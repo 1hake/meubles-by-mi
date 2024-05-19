@@ -51,11 +51,13 @@ export interface Product {
   description: string
   priceOptions?: PriceRow[]
   published: boolean
-  promotion: boolean
-  new: boolean
   facebookProductUrl: string
   shippingOptions: ShippingOptions
   ref: FirestoreRef
+}
+
+export interface ProductCardType extends Partial<Product> {
+  price
 }
 
 export interface ColorImage {

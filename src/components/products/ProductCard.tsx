@@ -51,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     >
       <img src={src} alt={name} className="md:w-full md:h-48 h-full w-full object-cover mb-2" />
       <div className="p-4 flex flex-col gap-2">
-        <h3 className="text-3xl lg:text-lg uppercase text-gray-700 font-bold mb-1">{name}</h3>
+        <h3 className="text-3xl lg:text-lg uppercase  text-gray-700 font-bold mb-1">{name}</h3>
         <div className="flex items-center space-x-2">
           {isNew && (
             <span className="bg-yellow-500 text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide">

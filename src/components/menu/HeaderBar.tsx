@@ -65,14 +65,14 @@ export const HeaderBar = () => {
             </>
           ) : (
             <>
-              <Link to="/signin" className="hidden lg:inline mr-6">
+              <Button onClick={() => navigate('/signin')} color="light" size="small" className="hidden lg:flex">
                 <FontAwesomeIcon icon={faSignInAlt} size="lg" className="mr-2" />
                 Connexion
-              </Link>
-              <Link to="/signup" className="hidden lg:inline mr-6">
+              </Button>
+              <Button onClick={() => navigate('/signup')} color="light" size="small" className="hidden lg:flex">
                 <FontAwesomeIcon icon={faUserPlus} size="lg" className="mr-2" />
                 Inscription
-              </Link>
+              </Button>
             </>
           )}
           <Link to="/cart" className="relative">

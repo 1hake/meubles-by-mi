@@ -112,14 +112,6 @@ const productsCollection = buildCollection<Product>({
       name: 'Publié',
       dataType: 'boolean'
     }),
-    promotion: buildProperty({
-      name: 'Promotion',
-      dataType: 'boolean'
-    }),
-    new: buildProperty({
-      name: 'Nouveautés',
-      dataType: 'boolean'
-    }),
     facebookProductUrl: buildProperty({
       name: 'Lien Facebook',
       dataType: 'string'
