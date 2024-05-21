@@ -33,7 +33,7 @@ export const routesConfig: Route[] = [
   },
   {
     name: 'All Products',
-    path: '/products',
+    path: 'categories/products',
     component: <ProductsShowCase />
   },
   {
