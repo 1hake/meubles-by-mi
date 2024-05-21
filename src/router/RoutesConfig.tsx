@@ -18,13 +18,15 @@ interface Route {
   component: JSX.Element
   isAnonymous?: boolean
   isProtected?: boolean
+  hasFooter?: boolean
 }
 
 export const routesConfig: Route[] = [
   {
     name: 'home',
     path: '/',
-    component: <Home />
+    component: <Home />,
+    hasFooter: true
   },
   {
     name: 'Product',

@@ -3,7 +3,7 @@ import { faEnvelope, faPhone } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
 
-const Footer: React.FC = () => {
+export const Footer: React.FC = () => {
   return (
     <footer className="bg-black text-white py-6 mt-8">
       <div className="flex flex-col items-center">
@@ -24,5 +24,3 @@ const Footer: React.FC = () => {
     </footer>
   )
 }
-
-export default Footer
