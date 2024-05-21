@@ -34,8 +34,7 @@ const ProductDetail: React.FC = () => {
   const productHasColorPrice =
     product?.color_images &&
     product.color_images.length > 0 &&
-    product.color_images[0].price !== null &&
-    product.color_images[0].price !== 0
+    product.color_images.some((ci) => ci.price && ci.price > 0)
 
   useEffect(() => {
     if (product) {
@@ -98,6 +97,7 @@ const ProductDetail: React.FC = () => {
       ref: product.ref,
       priceOption: product.priceOptions,
       color_images: product.color_images,
+      main_image: product.main_image,
       shippingOptions: product.shippingOptions
     }
 

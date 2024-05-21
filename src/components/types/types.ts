@@ -79,6 +79,7 @@ export interface CartItem {
   priceOption: PriceRow[]
   color_images: ColorImage[]
   shippingOptions: ShippingOptions
+  main_image: string
 }
 
 export interface OrderInfo {

@@ -12,7 +12,7 @@ interface CartItemProps {
 
 const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
   const { selectedCountry } = useCartContext()
-  const { id, name, variants, shippingOptions, priceOption } = item
+  const { id, name, variants, shippingOptions, priceOption, main_image } = item
 
   const hasColorPricing = variants.some((variant) => 'price' in variant)
 
@@ -31,12 +31,14 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         {variants.map((variant, index) => (
           <div key={index} className="flex justify-between items-center p-2">
-            {variant.image && (
+            {variant.image ? (
               <img
                 src={variant.image}
                 alt={`${variant.color} color variant`}
                 className="h-24 w-24 object-cover rounded-md"
               />
+            ) : (
+              <img src={main_image || ''} alt={`${name} main image`} className="h-24 w-24 object-cover rounded-md" />
             )}
             <p className="text-sm text-black">{`${variant.color}`}</p>
             <h3 className="text-xl font-bold text-black">{`x${variant.quantity}`}</h3>

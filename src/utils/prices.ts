@@ -11,9 +11,12 @@ export const calculatePriceByColor = (batchItems: BatchItem[], colorImages: Colo
 }
 
 export const calculateTotalPrice = (batchItems: BatchItem[], priceOptions: PriceRow[]): number => {
-  console.log('🚀 ~ calculateTotalPrice ~ priceOptions:', priceOptions)
   const totalQuantity = batchItems.reduce((total, item) => total + item.quantity, 0)
   const correspondingPriceOption = priceOptions.find((po) => parseInt(po.quantity) === totalQuantity)
+
+  if (!correspondingPriceOption) {
+    return totalQuantity * parseInt(priceOptions[0].price)
+  }
 
   return parseInt(correspondingPriceOption?.price || '0')
 }
