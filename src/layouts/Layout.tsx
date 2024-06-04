@@ -6,7 +6,6 @@ import { ToastContainer } from 'react-toastify'
 
 import { HeaderBar } from '../components/menu/HeaderBar'
 import { routesConfig } from '../router/RoutesConfig'
-import { Footer } from './Footer'
 
 export const Layout = ({ children }) => {
   const location = useLocation()
@@ -20,7 +19,7 @@ export const Layout = ({ children }) => {
       <div className="bg-white min-h-screen gap-4 font-inter flex flex-col flex-start transition duration-1000 ease-in-out">
         <HeaderBar />
         <div className="max-w-8xl px-4 lg:px-6 lg:pt-4">{children}</div>
-        {currentConfig?.hasFooter && <Footer />}
+        {/* {currentConfig?.hasFooter && <Footer />} */}
       </div>
     </>
   )
