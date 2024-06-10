@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - cicd
 
 jobs:
   build_and_deploy:
@@ -36,4 +36,4 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker service update --force --image thegobc/meubles-by-mi:latest meubles-by-mi
+            docker service update --force --image thegobc/meubles-by-mi:latest app-stack_meubles-by-mi
