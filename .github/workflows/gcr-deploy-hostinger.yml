@@ -34,6 +34,6 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_NOPW }}
           script: |
             docker service update --force --image thegobc/meubles-by-mi:latest app-stack_meubles-by-mi
