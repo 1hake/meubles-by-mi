@@ -1,5 +1,4 @@
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore'
-import { FirestoreError } from 'firebase/firestore'
+import { FirestoreError, addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 
 import { Order } from '../components/types/types'
@@ -34,21 +33,55 @@ const useOrders = () => {
       setLoading(false)
     }
   }
-
-  const addOrder = async (newOrder: Omit<Order, 'orderId'>) => {
-    console.log('🚀 ~ addOrder ~ newOrder:', newOrder)
+  const addOrder = async (newOrderInfo) => {
     setLoading(true)
     setError(null)
+
     try {
       const ordersCollectionRef = collection(projectFirestore, 'orders')
+      const newOrder = {
+        userId: newOrderInfo.userId,
+        products: newOrderInfo.products.map((p) => ({
+          productId: p.productId._key.path.segments.slice(-1)[0],
+          variants: p.variant.map((v) => ({
+            quantity: v.quantity || 0,
+            color: v.color
+          }))
+        })),
+        orderDate: new Date(),
+        shippingAddress: newOrderInfo.shippingAddress,
+        status: 'en attente'
+      }
+
       const docRef = await addDoc(ordersCollectionRef, {
         ...newOrder,
-        orderDate: newOrder.orderDate.toISOString() // Converting date to string for Firestore compatibility
+        orderDate: newOrder.orderDate.toISOString()
       })
+
+      for (const productOrder of newOrder.products) {
+        const productDocRef = doc(projectFirestore, 'products', productOrder.productId)
+        const productDoc = await getDoc(productDocRef)
+        if (productDoc.exists()) {
+          const productData = productDoc.data()
+
+          const updatedVariants = productData.color_images.map((variant) => {
+            const matchingOrderVariant = productOrder.variants.find((v) => v.color === variant.color)
+            if (matchingOrderVariant) {
+              return {
+                ...variant,
+                availableQuantity: (variant.availableQuantity || 0) - matchingOrderVariant.quantity
+              }
+            }
+            return variant
+          })
+
+          await updateDoc(productDocRef, { color_images: updatedVariants })
+        }
+      }
 
       setOrders((prev) => [...prev, { ...newOrder, orderId: docRef.id, orderDate: new Date(newOrder.orderDate) }])
     } catch (err) {
-      const firestoreError = err as FirestoreError
+      const firestoreError = err
       setError(`Error adding new order: ${firestoreError.message}`)
     } finally {
       setLoading(false)
