@@ -1,14 +1,16 @@
 import React from 'react'
 
-import { Cart } from '../components/Cart'
-import { ConfirmationPage } from '../components/ConfirmationPage'
-import { Footer } from '../components/Footer'
-import ProductCategory from '../components/ProductCategory'
-import ProductDetail from '../components/ProductDetail'
-import SignInForm from '../components/Users/SignInForm'
-import SignUpForm from '../components/Users/SignupForm'
+import Admin from '../admin/Admin'
+import ProductCategory from '../components/categories/ProductCategory'
+import ProductsShowCase from '../components/categories/ProductsShowCase'
+import { SignInForm } from '../components/Users/SignInForm'
+import { SignUpForm } from '../components/Users/SignUpForm'
 import UserOrdersPage from '../components/Users/UserOrders'
+import Cart from '../pages/Cart'
+import { ConfirmationPage } from '../pages/ConfirmationPage'
+import { Contact } from '../pages/Contact'
 import { Home } from '../pages/Home'
+import ProductDetail from '../pages/ProductDetail'
 
 interface Route {
   name: string
@@ -16,18 +18,25 @@ interface Route {
   component: JSX.Element
   isAnonymous?: boolean
   isProtected?: boolean
+  hasFooter?: boolean
 }
 
 export const routesConfig: Route[] = [
   {
     name: 'home',
     path: '/',
-    component: <Home />
+    component: <Home />,
+    hasFooter: true
   },
   {
     name: 'Product',
     path: '/product/:id',
     component: <ProductDetail />
+  },
+  {
+    name: 'All Products',
+    path: 'categories/products',
+    component: <ProductsShowCase />
   },
   {
     name: 'Categories',
@@ -42,16 +51,16 @@ export const routesConfig: Route[] = [
   {
     name: 'contact',
     path: '/contact',
-    component: <Footer />
+    component: <Contact />
   },
   {
     name: 'signin',
-    path: '/signin',
+    path: '/signin/:redirect?',
     component: <SignInForm />
   },
   {
     name: 'signup',
-    path: '/signup',
+    path: '/signup/:redirect?',
     component: <SignUpForm />
   },
   {
@@ -63,5 +72,10 @@ export const routesConfig: Route[] = [
     name: 'user-profile',
     path: '/profile',
     component: <UserOrdersPage />
+  },
+  {
+    name: 'admin',
+    path: '/admin',
+    component: <Admin />
   }
 ]
