@@ -7,7 +7,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-black text-white py-6 mt-8">
       <div className="flex flex-col items-center">
-        <p className="text-lg mb-4">Contactez nous</p>
+        <p className="text-lg mb-4">Contactez moi</p>
         <div className="flex space-x-4">
           <a href="https://www.facebook.com" aria-label="Facebook" className="text-white hover:text-blue-500">
             <FontAwesomeIcon icon={faFacebook} size="2x" />
