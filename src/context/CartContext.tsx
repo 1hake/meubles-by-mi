@@ -1,9 +1,35 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
 
-const CartContext = createContext()
+import { CartItem, Country, OrderInfo, ShippingAddress } from '../components/types/types'
+import { calculatePriceByColor, calculateTotalPrice } from '../utils/prices'
+import { useAuth } from './AuthContext'
 
-const CartProvider = ({ children }) => {
-  const getInitialCart = () => {
+interface CartContextType {
+  cart: CartItem[]
+  addBatch: (newItems: CartItem[]) => void
+  removeBatch: (itemId: string) => void
+  shippingAddress: ShippingAddress
+  setShippingAddress: (address: ShippingAddress) => void
+  selectedCountry: Country
+  setSelectedCountry: (country: Country) => void
+  totalPrice: number
+  addressCompleted: boolean
+  setAddressCompleted: (completed: boolean) => void
+  orderInfo: OrderInfo | null
+  setOrderInfo: (info: OrderInfo | null) => void
+  allItemsShippable: boolean
+  setUserInfoAsShippingAddress: () => void
+  shippingError: string
+  setShippingError: (error: string) => void
+  validateAddress: () => boolean
+  resetCart: () => void
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined)
+
+const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const getInitialCart = (): CartItem[] => {
     try {
       const storedCart = localStorage.getItem('cart')
       return storedCart ? JSON.parse(storedCart) : []
@@ -13,58 +39,147 @@ const CartProvider = ({ children }) => {
     }
   }
 
-  const [cart, setCart] = useState(getInitialCart)
+  const { currentUser } = useAuth()
+
+  const [cart, setCart] = useState<CartItem[]>(getInitialCart)
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+  const [selectedCountry, setSelectedCountry] = useState<Country>('France')
+  const [totalPrice, setTotalPrice] = useState(0)
+  const [addressCompleted, setAddressCompleted] = useState(false)
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null)
+  const [shippingError, setShippingError] = useState('')
 
   useEffect(() => {
-    try {
-      localStorage.setItem('cart', JSON.stringify(cart))
-    } catch (error) {
-      console.error('Failed to save cart to localStorage:', error)
+    localStorage.setItem('cart', JSON.stringify(cart))
+
+    const totalPrice = cart.reduce((acc, item) => {
+      if (item.priceOption?.length > 0) {
+        return acc + calculateTotalPrice(item.variants, item.priceOption)
+      }
+      return acc + calculatePriceByColor(item.variants, item.color_images)
+    }, 0)
+    setTotalPrice(totalPrice)
+
+    const orderInfo: OrderInfo = {
+      userId: currentUser?.id,
+      products: cart.map((item) => ({ productId: item.ref, variant: item.variants })),
+      shippingAddress
     }
+    setOrderInfo(orderInfo)
   }, [cart])
 
-  const addItem = (newItem) => {
+  const validateAddress = () => {
+    if (
+      shippingAddress.fullName === '' ||
+      shippingAddress.address === '' ||
+      shippingAddress.city === '' ||
+      shippingAddress.postalCode === ''
+    ) {
+      setShippingError('Veuillez remplir tous les champs')
+      toast.error('Veuillez remplir tous les champs')
+      return false
+    } else {
+      setShippingError('')
+      setAddressCompleted(true)
+      return true
+    }
+  }
+
+  const allItemsShippable = useMemo(() => {
+    return cart.every(
+      (item) =>
+        item.shippingOptions &&
+        item.shippingOptions[selectedCountry] !== null &&
+        item.shippingOptions[selectedCountry] !== undefined
+    )
+  }, [cart, selectedCountry])
+
+  const setUserInfoAsShippingAddress = () => {
+    if (currentUser) {
+      setShippingAddress({
+        fullName: currentUser.fullName,
+        address: currentUser.address || '',
+        city: currentUser.city || '',
+        postalCode: currentUser.postalCode || ''
+      })
+    }
+  }
+
+  const addBatch = (newItems: CartItem[]) => {
     setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex((item) => item.id === newItem.id)
-      if (existingItemIndex !== -1) {
-        // Update quantity immutably by adding the newItem's quantity to the existing item's quantity
-        const updatedCart = [...prevCart]
-        updatedCart[existingItemIndex] = {
-          ...prevCart[existingItemIndex],
-          quantity: prevCart[existingItemIndex].quantity + newItem.quantity
+      const updatedCart = prevCart.map((item) => ({ ...item }))
+      newItems.forEach((newItem) => {
+        const existingItemIndex = updatedCart.findIndex((item) => item.id === newItem.id)
+        if (existingItemIndex !== -1) {
+          // Merge variants
+          const existingItem = updatedCart[existingItemIndex]
+          newItem.variants.forEach((newVariant) => {
+            const variantIndex = existingItem.variants.findIndex((v) => v.color === newVariant.color)
+            if (variantIndex !== -1) {
+              existingItem.variants[variantIndex].quantity += newVariant.quantity // Merge quantity
+            } else {
+              existingItem.variants.push(newVariant) // Add new variant
+            }
+          })
+        } else {
+          updatedCart.push(newItem) // New item
         }
-        return updatedCart
-      } else {
-        // Item does not exist, add the new one with its quantity
-        // Ensure newItem has a default quantity if not provided
-        const itemToAdd = { ...newItem, quantity: newItem.quantity || 1 }
-        return [...prevCart, itemToAdd]
-      }
+      })
+      return updatedCart
     })
   }
 
-  const updateItemQuantity = (itemId, newQuantity) => {
-    setCart((prevCart) =>
-      prevCart.map((cartItem) => (cartItem.id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem))
-    )
+  const removeBatch = (itemId: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== itemId))
   }
 
-  const removeItem = (itemId) => {
-    setCart((prevCart) => prevCart.filter((cartItem) => cartItem.id !== itemId))
+  const resetCart = () => {
+    setCart([])
+    setTotalPrice(0)
+    setAddressCompleted(false)
+    setOrderInfo(null)
+    setShippingAddress({
+      fullName: '',
+      address: '',
+      city: '',
+      postalCode: ''
+    })
+    localStorage.removeItem('cart')
   }
 
-  const calculateTotal = () => {
-    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  const contextValue = {
+    setCart,
+    cart,
+    addBatch,
+    removeBatch,
+    shippingAddress,
+    setShippingAddress,
+    selectedCountry,
+    setSelectedCountry,
+    addressCompleted,
+    setAddressCompleted,
+    orderInfo,
+    setOrderInfo,
+    totalPrice,
+    allItemsShippable,
+    setUserInfoAsShippingAddress,
+    shippingError,
+    setShippingError,
+    validateAddress,
+    resetCart
   }
-
-  const contextValue = { cart, addItem, updateItemQuantity, removeItem, calculateTotal }
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
 }
 
 export default CartProvider
 
-export const useCartContext = () => {
+export const useCartContext = (): CartContextType => {
   const context = useContext(CartContext)
   if (context === undefined) {
     throw new Error('useCartContext must be used within a CartProvider')
