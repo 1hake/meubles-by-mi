@@ -7,6 +7,7 @@ import { StatusTag } from './StatusTag'
 
 const UserOrdersPage: React.FC = () => {
   const { orders, loading, error, fetchOrdersByUserId } = useOrders()
+  console.log('🚀 ~ orders:', orders)
   const { currentUser } = useAuth()
 
   useEffect(() => {
@@ -25,7 +26,7 @@ const UserOrdersPage: React.FC = () => {
 
   return (
     <div className="px-4">
-      <div className="overflow-x-auto relative  border-2 border-black rounded-lg">
+      <div className="overflow-x-auto relative border-2 border-black rounded-lg">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -52,9 +53,14 @@ const UserOrdersPage: React.FC = () => {
                 <td className="py-4 px-6">{new Date(order.orderDate).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6">
                   {order.products.map((product) =>
-                    product.variant.map((variant, index) => (
+                    product.variants.map((variant, index) => (
                       <div key={index} className="flex items-center space-x-3">
-                        <img src={variant.image} alt="Product" className="w-10 h-10 object-cover rounded-full" />
+                        {/* Placeholder image or default image handling */}
+                        <img
+                          src={variant.image || '/placeholder-image.png'}
+                          alt="Product"
+                          className="w-10 h-10 object-cover rounded-full"
+                        />
                         <span>{`Couleur: ${variant.color}, Quantité: ${variant.quantity}`}</span>
                       </div>
                     ))
@@ -67,7 +73,7 @@ const UserOrdersPage: React.FC = () => {
                 </td>
                 <td className="py-4 px-6">
                   {order.products.reduce(
-                    (total, product) => total + product.variant.reduce((sum, v) => sum + v.quantity, 0),
+                    (total, product) => total + product.variants.reduce((sum, variant) => sum + variant.quantity, 0),
                     0
                   )}
                 </td>

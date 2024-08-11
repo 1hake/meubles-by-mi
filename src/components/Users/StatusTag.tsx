@@ -23,7 +23,7 @@ export const StatusTag = ({ status }: Props) => {
 
   return (
     <div
-      className={`${classes.join()} flex justify-center text-white rounded-full px-2 py-1 text-xs uppercase font-semibold tracking-wide`}
+      className={`${classes.join()} flex justify-center text-white rounded-full px-2 text-nowrap	 py-1 text-xs uppercase font-semibold tracking-wide`}
     >
       {status}
     </div>

@@ -15,6 +15,7 @@ import { useCartContext } from '../../context/CartContext'
 import { categories } from '../../data/categories'
 import CartBadge from '../cart/CartBadge'
 import Button from '../common/Button'
+import HorizontalDivider from '../common/HorizontalDivider'
 
 export const HeaderBar = () => {
   const { cart } = useCartContext()
@@ -89,11 +90,7 @@ export const HeaderBar = () => {
           <Link to="/" onClick={closeMenu}>
             Accueil
           </Link>
-          {Object.keys(categories).map((category, index) => (
-            <Link key={index} to={`/categories/${category}`} onClick={closeMenu}>
-              {categories[category]}
-            </Link>
-          ))}
+
           <Link to="/cart" onClick={closeMenu}>
             Panier
           </Link>
@@ -116,6 +113,12 @@ export const HeaderBar = () => {
               </Link>
             </>
           )}
+          <HorizontalDivider />
+          {Object.keys(categories).map((category, index) => (
+            <Link key={index} to={`/categories/${category}`} onClick={closeMenu}>
+              {categories[category]}
+            </Link>
+          ))}
           <Link to="/contact" onClick={closeMenu}>
             Contact
           </Link>

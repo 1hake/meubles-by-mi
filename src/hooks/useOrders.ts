@@ -34,6 +34,7 @@ const useOrders = () => {
     }
   }
   const addOrder = async (newOrderInfo) => {
+    console.log('🚀 ~ addOrder ~ newOrderInfo:', newOrderInfo)
     setLoading(true)
     setError(null)
 
@@ -42,12 +43,14 @@ const useOrders = () => {
       const newOrder = {
         userId: newOrderInfo.userId,
         products: newOrderInfo.products.map((p) => ({
-          productId: p.productId._key.path.segments.slice(-1)[0],
+          productId: p.productId,
           variants: p.variant.map((v) => ({
             quantity: v.quantity || 0,
-            color: v.color
+            color: v.color,
+            image: v.image
           }))
         })),
+        price: newOrderInfo.price,
         orderDate: new Date(),
         shippingAddress: newOrderInfo.shippingAddress,
         status: 'en attente'

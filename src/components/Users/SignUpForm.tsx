@@ -48,8 +48,8 @@ export const SignUpForm: React.FC = () => {
   }
 
   return (
-    <div className="h-[60vh] flex items-center justify-center">
-      <div className="px-4 py-8 border-2 border-black shadow-light-large rounded-md">
+    <div className="flex items-center justify-center">
+      <div className="px-4 py-8 border-2 border-black shadow-light-large rounded-md w-full">
         <form onSubmit={handleSubmit} className="max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-4">Inscription</h2>
           {error && <div className="mb-4 text-red-500">{error}</div>}

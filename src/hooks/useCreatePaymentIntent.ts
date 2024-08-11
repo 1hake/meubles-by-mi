@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
-// Custom hook to call the createPaymentIntent Firebase function
-function useCreatePaymentIntent() {
+export function useCreatePaymentIntent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [clientSecret, setClientSecret] = useState(null)
@@ -11,7 +10,6 @@ function useCreatePaymentIntent() {
     setError(null)
 
     try {
-      // Update the URL to match your Firebase function's endpoint
       const response = await fetch(
         `https://createpaymentintent-k4ks6w6uwq-uc.a.run.app?amount=${amount}&currency=${currency}`,
         {
@@ -20,13 +18,14 @@ function useCreatePaymentIntent() {
         }
       )
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        const errorData = await response.json()
+        throw new Error(`Error: ${errorData.message || 'Network response was not ok'}`)
       }
       const data = await response.json()
-
       setClientSecret(data.clientSecret)
     } catch (error) {
       setError(error.message)
+      console.error('Error occurred while creating payment intent:', error)
     } finally {
       setLoading(false)
     }
@@ -34,5 +33,3 @@ function useCreatePaymentIntent() {
 
   return { createPaymentIntent, loading, error, clientSecret }
 }
-
-export default useCreatePaymentIntent

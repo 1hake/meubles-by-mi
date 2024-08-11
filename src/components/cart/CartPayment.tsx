@@ -2,7 +2,7 @@ import { Elements } from '@stripe/react-stripe-js'
 import React, { useEffect } from 'react'
 
 import { useCartContext } from '../../context/CartContext'
-import useCreatePaymentIntent from '../../hooks/useCreatePaymentIntent'
+import { useCreatePaymentIntent } from '../../hooks/useCreatePaymentIntent'
 import { stripePromise } from '../../router/Router'
 import { Loader } from '../common/Loader'
 import { OrderInfo } from '../types/types'
@@ -17,7 +17,7 @@ const CartPayment = ({ orderInfo }: Props) => {
   const { totalPrice } = useCartContext()
 
   useEffect(() => {
-    createPaymentIntent(totalPrice, 'eur')
+    createPaymentIntent(totalPrice * 100, 'eur')
   }, [])
 
   if (!clientSecret) return <Loader />

@@ -17,6 +17,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ clientSecret }) => {
   const navigate = useNavigate()
   const { addOrder } = useOrders()
   const { setCart, orderInfo, shippingAddress, totalPrice } = useCartContext()
+  console.log('🚀 ~ totalPrice:', totalPrice)
   console.log('🚀 ~ shippingAddress:', shippingAddress)
   console.log('🚀 ~ orderInfo:', orderInfo)
 
