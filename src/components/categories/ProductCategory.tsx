@@ -17,7 +17,7 @@ const ProductCategory: React.FC = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (elements.length > 0) {
+    if (elements && elements.length > 0) {
       const promises = elements.map((element) => {
         return getDownloadUrl(element.main_image)
       })
@@ -62,11 +62,10 @@ const ProductCategory: React.FC = () => {
               />
             ))
           ) : (
-            <div className="w-full h-[50vh] flex justify-center items-center flex-col gap-4">
-              {/* <FontAwesomeIcon icon={faXmark} size="5x" /> */}
-              <p className="text-center">Oups, il n'y a pas encore de produit dans cette categorie</p>
+            <div className="w-full h-[50vh] flex flex-col justify-center items-center gap-4 text-center">
+              <p>Oups, il n'y a pas encore de produit dans cette categorie</p>
               <Button color="dark" onClick={() => navigate('/')}>
-                Retour a l'acceuil
+                Retour à l'accueil
               </Button>
             </div>
           )}

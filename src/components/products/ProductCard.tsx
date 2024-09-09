@@ -37,7 +37,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const maxDescriptionLength = 100
 
   useEffect(() => {
-    if (description.length > maxDescriptionLength) {
+    if (description && description.length > maxDescriptionLength) {
       setTruncatedDescription(`${description.slice(0, maxDescriptionLength)}...`)
     } else {
       setTruncatedDescription(description)

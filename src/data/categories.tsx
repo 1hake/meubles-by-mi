@@ -7,7 +7,9 @@ export const categories = {
   'table-a-manger': 'Table à manger',
   'table-haute-a-manger': 'Table haute à manger',
   'table-basse-de-salon': 'Table basse de salon',
-  tabouret: 'Tabouret',
+  'tabouret-microfibre': 'Tabouret microfibre',
+  'tabouret-velour': 'Tabouret en velours',
+  buffet: 'Buffet',
   etagere: 'Étagère',
   'meuble-tv': 'Meuble TV'
 }
@@ -91,5 +93,23 @@ export default [
     background:
       'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
     navigation: 'meuble-tv'
+  },
+  {
+    title: 'Tabouret en velours',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'tabouret-velour'
+  },
+  {
+    title: 'Tabouret microfibre',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'tabouret-microfibre'
+  },
+  {
+    title: 'Buffet',
+    background:
+      'https://firebasestorage.googleapis.com/v0/b/meublesbymi.appspot.com/o/products%2Fdg0uy_sam-moghadam-khamseh-kvmdsTrGOBM-unsplash.jpg?alt=media&token=ffc5f8e6-73ad-4e47-9f15-43d976b296bc&_gl=1*zw786a*_ga*MzU2MjM5NjQwLjE2OTg4NzgyNDE.*_ga_CW55HF8NVT*MTY5OTMxMTA2MS41LjEuMTY5OTMxMTE2Mi41NS4wLjA.',
+    navigation: 'buffet'
   }
 ]
