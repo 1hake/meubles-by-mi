@@ -1,24 +1,25 @@
-import React from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import 'react-toastify/dist/ReactToastify.css'
 
-import { HeaderBar } from '../components/HeaderBar' // Import your modified HeaderBar component
-import { HeroSection } from '../components/HeroSection'
+import React from 'react'
+import { useLocation } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+
+import { HeaderBar } from '../components/menu/HeaderBar'
+import { routesConfig } from '../router/RoutesConfig'
 
 export const Layout = ({ children }) => {
   const location = useLocation()
-  const params = useParams()
 
-  // Check if it's the home page (you can modify the logic based on your route structure)
-  const isHomePage = location.pathname === '/' && Object.keys(params).length === 0
+  const currentConfig = routesConfig.find((route) => route.path === location.pathname)
 
   return (
     <>
-      <div className="bg-white min-h-screen font-inter transition duration-1000 ease-in-out">
-        {!isHomePage ? <HeaderBar /> : <HeroSection />}
-        <div className="max-w-8xl  mx-auto px-4 lg:px-8 lg:pt-4">
-          {children}
-          {/* <Footer /> */}
-        </div>
+      <ToastContainer theme="colored" autoClose={1000} />
+
+      <div className="bg-white min-h-screen gap-4 font-inter flex flex-col flex-start transition duration-1000 ease-in-out">
+        <HeaderBar />
+        <div className="max-w-8xl px-4 lg:px-6 lg:pt-4">{children}</div>
+        {/* {currentConfig?.hasFooter && <Footer />} */}
       </div>
     </>
   )
