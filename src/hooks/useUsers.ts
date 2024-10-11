@@ -1,26 +1,18 @@
-import { addDoc, collection, getDocs, query } from 'firebase/firestore'
+import { DocumentReference, addDoc, collection, doc, getDoc, getDocs, query } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 
 import { projectFirestore } from '../firebase-config'
 
 interface User {
-  userId: string
-  name: string
   email: string
-  orders: string[] // Array of order IDs
-  ref?: any // Optional reference to the Firestore document
-}
-
-interface Order {
-  orderId: string
-  customerId: string
-  orderDate: string
-  deliveryDate: string | null
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
-  items: any[]
-  deliveryAddress: any
-  payment: any
-  totalAmount: number
+  passwordHash: string
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+  userId?: string
+  ref?: DocumentReference
 }
 
 export const useUsers = () => {
@@ -33,16 +25,15 @@ export const useUsers = () => {
       setLoading(true)
       setError(null)
       try {
-        const usersCollection = collection(projectFirestore, 'users')
-        const querySnapshot = await getDocs(query(usersCollection))
+        const usersCollectionRef = collection(projectFirestore, 'users')
+        const querySnapshot = await getDocs(query(usersCollectionRef))
         const fetchedUsers: User[] = querySnapshot.docs.map((doc) => ({
-          userId: doc.id,
-          ref: doc.ref, // Add the document reference here
+          ref: doc.ref,
           ...(doc.data() as User)
         }))
         setUsers(fetchedUsers)
       } catch (err) {
-        setError('Error fetching users: ' + err.message)
+        setError('Erreur lors de la récupération des utilisateurs : ' + err.message)
       } finally {
         setLoading(false)
       }
@@ -51,7 +42,23 @@ export const useUsers = () => {
     fetchUsers()
   }, [])
 
-  const addUser = async (userData) => {
+  const getUserById = async (id) => {
+    setLoading(true)
+
+    const docRef = doc(projectFirestore, 'users', id)
+    const docSnap = await getDoc(docRef)
+
+    if (!docSnap.exists()) {
+      console.log('error to get user')
+      return
+    }
+    setLoading(false)
+
+    const user = { ...docSnap.data(), ref: docRef }
+    return user
+  }
+
+  const addUser = async (userData: User) => {
     setLoading(true)
     try {
       const docRef = await addDoc(collection(projectFirestore, 'users'), userData)
@@ -59,35 +66,16 @@ export const useUsers = () => {
       return {
         ...userData,
         userId: docRef.id,
-        ref: docRef // Return the document reference
+        ref: docRef
       }
     } catch (err) {
-      setError('Error adding new user: ' + err.message)
+      setError("Erreur lors de l'ajout d'un nouvel utilisateur : " + err.message)
       setLoading(false)
       return null
     }
   }
 
-  const fetchUserOrders = async (userId: string): Promise<Order[]> => {
-    setLoading(true)
-    try {
-      const ordersCollection = collection(projectFirestore, 'orders')
-      const q = query(ordersCollection, where('customerId', '==', userId))
-      const querySnapshot = await getDocs(q)
-      const orders: Order[] = querySnapshot.docs.map((doc) => ({
-        orderId: doc.id,
-        ...(doc.data() as Order)
-      }))
-      return orders
-    } catch (err) {
-      setError('Error fetching orders for user: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
-    return []
-  }
-
-  return { users, addUser, fetchUserOrders, loading, error }
+  return { users, addUser, getUserById, loading, error }
 }
 
 export default useUsers

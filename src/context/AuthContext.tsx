@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
 import { auth, projectFirestore } from '../firebase-config'
@@ -17,20 +17,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userRef = doc(projectFirestore, 'users', user.uid)
-        const userDoc = await getDoc(userRef)
-        if (userDoc.exists()) {
-          setCurrentUser({
-            uid: user.uid,
-            name: userDoc.data().name,
-            email: user.email
-          })
-        } else {
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email
-          }) // Minimal user info
-        }
+        const q = query(collection(projectFirestore, 'users'), where('id', '==', user.uid))
+
+        const querySnapshot = await getDocs(q)
+        const userData = querySnapshot.forEach((doc) => {
+          setCurrentUser({ ...doc.data() })
+        })
       } else {
         setCurrentUser(null)
       }
@@ -43,15 +35,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const response = await signInWithEmailAndPassword(auth, email, password)
     if (response.user) {
-      const userRef = doc(projectFirestore, 'users', response.user.uid)
-      const userDoc = await getDoc(userRef)
-      if (userDoc.exists()) {
-        setCurrentUser({
-          uid: response.user.uid,
-          name: userDoc.data().name,
-          email: response.user.email
-        })
-      }
+      const q = query(collection(projectFirestore, 'users'), where('id', '==', response.user.uid))
+
+      const querySnapshot = await getDocs(q)
+      const user = querySnapshot.forEach((doc) => {
+        setCurrentUser({ ...doc.data() })
+      })
+
       return response
     }
   }
@@ -61,20 +51,17 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null)
   }
 
-  const signup = async (email, password, name) => {
-    const response = await createUserWithEmailAndPassword(auth, email, password)
+  const signup = async (userInfo) => {
+    console.log('🚀 ~ signup ~ userInfo:', userInfo)
+    const response = await createUserWithEmailAndPassword(auth, userInfo.email, userInfo.password)
+    console.log('🚀 ~ signup ~ response:', response)
     if (response.user) {
       const userData = {
-        email,
-        name,
-        orders: []
+        id: response.user.uid,
+        ...userInfo
       }
       const newUser = await addUser(userData)
-      setCurrentUser({
-        uid: response.user.uid,
-        name: newUser.name,
-        email: response.user.email
-      })
+      setCurrentUser(userData)
     }
   }
 
