@@ -11,6 +11,7 @@ import { ConfirmationPage } from '../pages/ConfirmationPage'
 import { Contact } from '../pages/Contact'
 import { Home } from '../pages/Home'
 import ProductDetail from '../pages/ProductDetail'
+import Profile from '../pages/Profile'
 
 interface Route {
   name: string
@@ -71,7 +72,7 @@ export const routesConfig: Route[] = [
   {
     name: 'user-profile',
     path: '/profile',
-    component: <UserOrdersPage />
+    component: <Profile />
   },
   {
     name: 'admin',

@@ -9,7 +9,7 @@ import { Layout } from '../layouts/Layout'
 import { routesConfig } from './RoutesConfig'
 
 export const stripePromise = loadStripe(
-  'pk_test_51OeZoPLTfd10N7e5WDyEMkGQ6SSFVTeujXqBMbvTdMgmCT6fubXo40e4prZs9i5usLToLX6mnp3BGTDF40vtiqj4004189Kdu7'
+  'pk_live_51OeZoPLTfd10N7e5PslZkPv3JWC2dPUPfjdy1aAblzL0VsMJ9D99Co1Im0hCyiCfXpkaxP8kDXhmefYDDsKyGwsV00uTxVy6Yz'
 )
 
 export const Router = () => {

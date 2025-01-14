@@ -1,5 +1,16 @@
-import { FirestoreError, addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
-import { useEffect, useState } from 'react'
+import {
+  FirestoreError,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where
+} from 'firebase/firestore'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Order } from '../components/types/types'
 import { projectFirestore } from '../firebase-config'
@@ -9,22 +20,20 @@ const useOrders = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchAllOrders()
-  }, [])
-
-  const fetchAllOrders = async () => {
+  const fetchAllOrders = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     try {
       const ordersCollectionRef = collection(projectFirestore, 'orders')
       const snapshot = await getDocs(query(ordersCollectionRef))
-      const fetchedOrders = snapshot.docs.map((doc) => ({
-        orderId: doc.id,
-        ...(doc.data() as Order)
-      }))
 
+      const fetchedOrders = snapshot.docs.map((doc) => {
+        return {
+          orderId: doc.id,
+          ...(doc.data() as Order)
+        }
+      })
       setOrders(fetchedOrders)
     } catch (err) {
       const firestoreError = err as FirestoreError
@@ -32,15 +41,32 @@ const useOrders = () => {
     } finally {
       setLoading(false)
     }
-  }
-  const addOrder = async (newOrderInfo) => {
-    console.log('🚀 ~ addOrder ~ newOrderInfo:', newOrderInfo)
+  }, [])
+
+  useEffect(() => {
+    fetchAllOrders()
+  }, [fetchAllOrders])
+
+  const addOrder = async (newOrderInfo: {
+    userId: string
+    products: Array<{
+      productId: string
+      variant: Array<{
+        quantity: number
+        color: string
+        image: string
+      }>
+    }>
+    price: number
+    shippingAddress: string
+  }) => {
     setLoading(true)
     setError(null)
 
     try {
       const ordersCollectionRef = collection(projectFirestore, 'orders')
-      const newOrder = {
+
+      const newOrder: Omit<Order, 'orderId'> = {
         userId: newOrderInfo.userId,
         products: newOrderInfo.products.map((p) => ({
           productId: p.productId,
@@ -51,23 +77,25 @@ const useOrders = () => {
           }))
         })),
         price: newOrderInfo.price,
-        orderDate: new Date(),
+        orderDate: serverTimestamp() as any,
         shippingAddress: newOrderInfo.shippingAddress,
         status: 'en attente'
       }
 
-      const docRef = await addDoc(ordersCollectionRef, {
-        ...newOrder,
-        orderDate: newOrder.orderDate.toISOString()
-      })
+      const docRef = await addDoc(ordersCollectionRef, newOrder)
 
       for (const productOrder of newOrder.products) {
         const productDocRef = doc(projectFirestore, 'products', productOrder.productId)
-        const productDoc = await getDoc(productDocRef)
-        if (productDoc.exists()) {
-          const productData = productDoc.data()
+        const productDocSnap = await getDoc(productDocRef)
 
-          const updatedVariants = productData.color_images.map((variant) => {
+        if (productDocSnap.exists()) {
+          const productData = productDocSnap.data() as any
+
+          if (!Array.isArray(productData.color_images)) {
+            continue
+          }
+
+          const updatedVariants = productData.color_images.map((variant: any) => {
             const matchingOrderVariant = productOrder.variants.find((v) => v.color === variant.color)
             if (matchingOrderVariant) {
               return {
@@ -78,13 +106,22 @@ const useOrders = () => {
             return variant
           })
 
-          await updateDoc(productDocRef, { color_images: updatedVariants })
+          await updateDoc(productDocRef, {
+            color_images: updatedVariants
+          })
         }
       }
 
-      setOrders((prev) => [...prev, { ...newOrder, orderId: docRef.id, orderDate: new Date(newOrder.orderDate) }])
+      setOrders((prev) => [
+        ...prev,
+        {
+          ...newOrder,
+          orderId: docRef.id,
+          orderDate: new Date()
+        }
+      ])
     } catch (err) {
-      const firestoreError = err
+      const firestoreError = err as FirestoreError
       setError(`Error adding new order: ${firestoreError.message}`)
     } finally {
       setLoading(false)
@@ -99,12 +136,17 @@ const useOrders = () => {
       const ordersCollectionRef = collection(projectFirestore, 'orders')
       const userQuery = query(ordersCollectionRef, where('userId', '==', userId))
       const snapshot = await getDocs(userQuery)
-      const userOrders = snapshot.docs.map((doc) => ({
-        orderId: doc.id,
-        ...(doc.data() as Order)
-      }))
 
-      setOrders(userOrders)
+      if (!snapshot.empty) {
+        const userOrders = snapshot.docs.map((doc) => ({
+          orderId: doc.id,
+          ...(doc.data() as Order)
+        }))
+        setOrders(userOrders)
+      } else {
+        setOrders([])
+        setError('No orders found for this user.')
+      }
     } catch (err) {
       const firestoreError = err as FirestoreError
       setError(`Error fetching user's orders: ${firestoreError.message}`)
@@ -113,7 +155,14 @@ const useOrders = () => {
     }
   }
 
-  return { orders, loading, error, addOrder, fetchOrdersByUserId }
+  return {
+    orders,
+    loading,
+    error,
+    addOrder,
+    fetchOrdersByUserId,
+    fetchAllOrders
+  }
 }
 
 export default useOrders

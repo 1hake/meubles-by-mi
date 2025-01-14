@@ -8,9 +8,10 @@ import { CartItem, ColorImage } from '../types/types'
 interface CartItemProps {
   item: CartItem
   onRemove: (id: string) => void
+  isDeletable: boolean
 }
 
-const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
+const CartItemBatchDisplay = ({ item, onRemove, isDeletable = true }: CartItemProps) => {
   const { selectedCountry } = useCartContext()
   const { id, name, variants, shippingOptions, priceOption, main_image } = item
 
@@ -24,9 +25,11 @@ const CartItemBatchDisplay = ({ item, onRemove }: CartItemProps) => {
 
   return (
     <div className="relative bg-white p-4 rounded-lg border-2 border-black mb-4 shadow-sm">
-      <Button size="small" onClick={() => onRemove(id)} className="absolute top-[-10px] right-[-10px]" color="light">
-        Supprimer
-      </Button>
+      {isDeletable && (
+        <Button size="small" onClick={() => onRemove(id)} className="absolute top-[-10px] right-[-10px]" color="light">
+          Supprimer
+        </Button>
+      )}
       <div className="flex flex-col space-y-2">
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         {variants.map((variant, index) => (

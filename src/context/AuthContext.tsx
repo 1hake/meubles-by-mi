@@ -1,27 +1,46 @@
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { collection, getDocs, query, where } from 'firebase/firestore'
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 import { auth, projectFirestore } from '../firebase-config'
 import useUsers from '../hooks/useUsers'
 
-const AuthContext = createContext()
+interface AuthContextType {
+  currentUser: any
+  login: (email: string, password: string) => Promise<any>
+  logout: () => Promise<void>
+  signup: (userInfo: any) => Promise<any>
+  error: string
+}
 
-export const useAuth = () => useContext(AuthContext)
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null)
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>('')
   const { addUser } = useUsers()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const q = query(collection(projectFirestore, 'users'), where('id', '==', user.uid))
+        const q = query(collection(projectFirestore, 'users'), where('userId', '==', user.uid)) // Ensure 'userId' is used
 
         const querySnapshot = await getDocs(q)
-        const userData = querySnapshot.forEach((doc) => {
-          setCurrentUser({ ...doc.data() })
+        querySnapshot.forEach((doc) => {
+          setCurrentUser({ ...doc.data(), userId: doc.id }) // Ensure userId is set
         })
       } else {
         setCurrentUser(null)
@@ -32,17 +51,22 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe()
   }, [])
 
-  const login = async (email, password) => {
-    const response = await signInWithEmailAndPassword(auth, email, password)
-    if (response.user) {
-      const q = query(collection(projectFirestore, 'users'), where('id', '==', response.user.uid))
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await signInWithEmailAndPassword(auth, email, password)
+      if (response.user) {
+        const q = query(collection(projectFirestore, 'users'), where('id', '==', response.user.uid))
 
-      const querySnapshot = await getDocs(q)
-      const user = querySnapshot.forEach((doc) => {
-        setCurrentUser({ ...doc.data() })
-      })
+        const querySnapshot = await getDocs(q)
+        querySnapshot.forEach((doc) => {
+          setCurrentUser({ ...doc.data() })
+        })
 
-      return response
+        return response
+      }
+    } catch (err) {
+      setError("Le nom d'utilisateur ou le mot de passe est incorrect")
+      return null
     }
   }
 
@@ -51,25 +75,28 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null)
   }
 
-  const signup = async (userInfo) => {
-    console.log('🚀 ~ signup ~ userInfo:', userInfo)
-    const response = await createUserWithEmailAndPassword(auth, userInfo.email, userInfo.password)
-    console.log('🚀 ~ signup ~ response:', response)
-    if (response.user) {
-      const userData = {
-        id: response.user.uid,
-        ...userInfo
+  const signup = async (userInfo: any) => {
+    try {
+      const response = await createUserWithEmailAndPassword(auth, userInfo.email, userInfo.password)
+      if (response.user) {
+        const userData = {
+          userId: response.user.uid, // Ensure 'userId' is used
+          ...userInfo
+        }
+        await addUser(userData)
+        setCurrentUser(userData)
       }
-      const newUser = await addUser(userData)
-      setCurrentUser(userData)
+    } catch (err) {
+      setError("L'email existe déjà")
+      return null
     }
   }
-
   const value = {
     currentUser,
     login,
     logout,
-    signup
+    signup,
+    error
   }
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>

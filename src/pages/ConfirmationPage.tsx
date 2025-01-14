@@ -59,7 +59,7 @@ export const ConfirmationPage = () => {
       <div className="p-6 rounded-lg">
         <h2 className="text-2xl font-semibold mb-6">Récapitulatif de votre commande</h2>
         {cart.map((item, index) => (
-          <CartItem key={index} item={item} onRemove={() => {}} selectedCountry="Belgique" />
+          <CartItem key={index} item={item} onRemove={() => {}} selectedCountry="Belgique" isDeletable={false} />
         ))}
         <div className="mt-10 text-center">
           <button

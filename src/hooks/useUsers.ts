@@ -1,4 +1,4 @@
-import { DocumentReference, addDoc, collection, doc, getDoc, getDocs, query } from 'firebase/firestore'
+import { DocumentReference, addDoc, collection, doc, getDoc, getDocs, query, updateDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 
 import { projectFirestore } from '../firebase-config'
@@ -75,7 +75,22 @@ export const useUsers = () => {
     }
   }
 
-  return { users, addUser, getUserById, loading, error }
+  const editUser = async (id: string, updatedData: Partial<User>) => {
+    setLoading(true)
+    try {
+      const docRef = doc(projectFirestore, 'users', id)
+      await updateDoc(docRef, updatedData)
+      setLoading(false)
+      return true
+    } catch (err) {
+      console.error('Error updating user:', err) // Log the error for debugging
+      setError("Erreur lors de la mise à jour de l'utilisateur : " + err.message)
+      setLoading(false)
+      return false
+    }
+  }
+
+  return { users, addUser, getUserById, editUser, loading, error }
 }
 
 export default useUsers
