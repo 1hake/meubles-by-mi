@@ -28,7 +28,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const storedUser = localStorage.getItem('currentUser')
+    return storedUser ? JSON.parse(storedUser) : null
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const { addUser } = useUsers()
@@ -36,14 +39,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const q = query(collection(projectFirestore, 'users'), where('userId', '==', user.uid)) // Ensure 'userId' is used
+        const q = query(collection(projectFirestore, 'users'), where('userId', '==', user.uid))
 
         const querySnapshot = await getDocs(q)
         querySnapshot.forEach((doc) => {
-          setCurrentUser({ ...doc.data(), userId: doc.id }) // Ensure userId is set
+          const userData = { ...doc.data(), userId: doc.id }
+          setCurrentUser(userData)
+          localStorage.setItem('currentUser', JSON.stringify(userData))
         })
       } else {
         setCurrentUser(null)
+        localStorage.removeItem('currentUser')
       }
       setLoading(false)
     })
@@ -59,7 +65,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const querySnapshot = await getDocs(q)
         querySnapshot.forEach((doc) => {
-          setCurrentUser({ ...doc.data() })
+          const userData = { ...doc.data() }
+          setCurrentUser(userData)
+          localStorage.setItem('currentUser', JSON.stringify(userData))
         })
 
         return response
@@ -73,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     await signOut(auth)
     setCurrentUser(null)
+    localStorage.removeItem('currentUser')
   }
 
   const signup = async (userInfo: any) => {
@@ -80,11 +89,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await createUserWithEmailAndPassword(auth, userInfo.email, userInfo.password)
       if (response.user) {
         const userData = {
-          userId: response.user.uid, // Ensure 'userId' is used
+          userId: response.user.uid,
           ...userInfo
         }
         await addUser(userData)
         setCurrentUser(userData)
+        localStorage.setItem('currentUser', JSON.stringify(userData))
       }
     } catch (err) {
       setError("L'email existe déjà")
