@@ -13,6 +13,7 @@ const ProductCategory: React.FC = () => {
   const [images, setImages] = useState<ProductCardType[]>([])
   const { category } = useParams()
   const elements: Product[] = useCategories('products', category)
+  console.log('🚀 ~ elements:', elements)
 
   const navigate = useNavigate()
 
@@ -29,7 +30,7 @@ const ProductCategory: React.FC = () => {
             name: elements[index].name,
             categories: elements[index].categories,
             description: elements[index].description,
-            price: elements[index]?.priceOptions?.[0]?.price || elements[index].color_images?.[0].price || 0,
+            price: elements[index].color_images?.[0].price || elements[index].price,
             published: elements[index].published,
             color_images: elements[index].color_images
           }
@@ -54,7 +55,7 @@ const ProductCategory: React.FC = () => {
                 key={index}
                 src={image.main_image}
                 name={image.name}
-                price={image.price || image}
+                price={image.price}
                 id={image.id}
                 description={image.description}
                 colorNb={image?.color_images?.length || 0}

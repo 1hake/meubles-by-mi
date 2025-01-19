@@ -54,6 +54,7 @@ export interface Product {
   facebookProductUrl: string
   shippingOptions: ShippingOptions
   ref: FirestoreRef
+  price: number
 }
 
 export interface ProductCardType extends Partial<Product> {
