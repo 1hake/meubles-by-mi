@@ -1,38 +1,10 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-const { onRequest, HttpsError } = require('firebase-functions/v2/https')
-const logger = require('firebase-functions/logger')
-const { getFirestore } = require('firebase-admin/firestore')
-const functions = require('firebase-functions')
+const { onRequest } = require('firebase-functions/v2/https')
 const { defineSecret } = require('firebase-functions/params')
-
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
+// const stripeSecretName = 'STRIPE_LIVE_SECRET'
 const stripeSecretName = 'STRIPE_TEST_SECRET'
+// const stripeSkTest = defineSecret(stripeSecretName)
 
-const stripeSkTest = defineSecret(stripeSecretName)
-
-exports.helloWorld = onRequest((request, response) => {
-  logger.info('Hello logs!', { structuredData: true })
-  response.send('Hello from Firebase!')
-})
-
-exports.addmessage = onRequest(async (req, res) => {
-  // Grab the text parameter.
-  const original = req.query.text
-  // Push the new message into Firestore using the Firebase Admin SDK.
-  const writeResult = await getFirestore().collection('messages').add({ original })
-  // Send back a message that we've successfully written the message
-  res.json({ result: `Message with ID: ${writeResult.id} added.` })
-})
+const stripeLiveName = defineSecret(stripeSecretName)
 
 exports.createPaymentIntent = onRequest(
   {
@@ -42,16 +14,47 @@ exports.createPaymentIntent = onRequest(
     }
   },
   async (req, res) => {
-    const { amount, currency } = req.query
+    try {
+      const { amount, currency } = req.query
 
-    const stripe = require('stripe')(stripeSkTest.value())
+      if (!amount || !currency) {
+        res.status(400).json({ error: 'Amount and currency are required.' })
+        return
+      }
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency,
-      payment_method_types: ['card']
-    })
+      if (isNaN(amount) || amount <= 0) {
+        res.status(400).json({ error: 'Invalid amount provided. Amount must be a positive number.' })
+        return
+      }
 
-    res.json({ clientSecret: paymentIntent.client_secret }).send('Payment Intent Created')
+      const stripe = require('stripe')(stripeLiveName.value())
+
+      console.log('Stripe API Key:', stripeLiveName.value())
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency,
+        payment_method_types: ['card']
+      })
+
+      res.status(200).json({ clientSecret: paymentIntent.client_secret })
+    } catch (error) {
+      console.error('Error creating payment intent:', error)
+      if (error.type === 'StripeCardError') {
+        res.status(400).json({ error: `Card error: ${error.message}` })
+      } else if (error.type === 'RateLimitError') {
+        res.status(429).json({ error: 'Rate limit exceeded, please try again later.' })
+      } else if (error.type === 'StripeInvalidRequestError') {
+        res.status(400).json({ error: `Invalid request: ${error.message}` })
+      } else if (error.type === 'StripeAPIError') {
+        res.status(500).json({ error: 'Internal server error, please try again later.' })
+      } else if (error.type === 'StripeConnectionError') {
+        res.status(502).json({ error: 'Network error, please try again later.' })
+      } else if (error.type === 'StripeAuthenticationError') {
+        res.status(401).json({ error: 'Authentication with Stripe API failed, please check your API key.' })
+      } else {
+        res.status(500).json({ error: 'An unexpected error occurred, please try again later.' })
+      }
+    }
   }
 )

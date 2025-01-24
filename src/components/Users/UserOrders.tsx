@@ -1,77 +1,103 @@
 import React, { useEffect } from 'react'
+import { FiCalendar, FiMapPin, FiPackage } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext'
 import useOrders from '../../hooks/useOrders'
-
-interface Product {
-  productId: string
-  quantity: number
-}
-
-interface Order {
-  orderId?: string
-  userId: string
-  products: Product[]
-  orderDate: Date
-  shippingAddress: {
-    fullName: string
-    address: string
-    city: string
-    postalCode: string
-    country: string
-  }
-}
+import Button from '../common/Button'
+import { Loader } from '../common/Loader'
+import { StatusTag } from './StatusTag'
 
 const UserOrdersPage: React.FC = () => {
   const { orders, loading, error, fetchOrdersByUserId } = useOrders()
   const { currentUser } = useAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchOrdersByUserId(currentUser.uid)
     }
-  }, []) // added currentUser and fetchOrdersByUserId as dependencies
+  }, [currentUser, fetchOrdersByUserId])
 
   if (loading) {
-    return <p className="text-center text-lg">Chargement en cours...</p>
+    return <Loader />
   }
 
   if (error) {
     return <p className="text-center text-red-500 text-lg">Erreur : {error}</p>
   }
 
-  return (
-    <div className="container mx-auto px-4">
-      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" className="py-3 px-6">
-                ID de commande
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Date de commande
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Produits et quantités
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.orderId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <td className="py-4 px-6">{order.orderId}</td>
-                <td className="py-4 px-6">{new Date(order.orderDate).toLocaleDateString('fr-FR')}</td>
-                <td className="py-4 px-6">
-                  {order.products.map((product) => (
-                    <div key={product.productId}>{`${product.productId} (Quantité : ${product.quantity})`}</div>
-                  ))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  if (orders.length === 0) {
+    return (
+      <div className="text-center h-full flex flex-col items-center justify-center">
+        <p className="text-lg mt-24">Vous n'avez aucune commande pour le moment.</p>
+        <Button onClick={() => navigate('/')} className="mt-4">
+          Retour à l'accueil
+        </Button>
       </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-wrap justify-center">
+      {orders.map((order) => {
+        const formattedDate = new Date(order.orderDate.seconds * 1000).toLocaleDateString('fr-FR')
+        const totalQuantity = order.products.reduce(
+          (total, product) => total + product.variants.reduce((sum, variant) => sum + variant.quantity, 0),
+          0
+        )
+
+        return (
+          <div key={order.orderId} className="bg-white border-2 rounded-md border-black m-2 p-4 w-full">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <FiCalendar className="text-xl" />
+                <span className="font-medium">{formattedDate}</span>
+              </div>
+              <StatusTag status={order.status} />
+            </div>
+
+            <div className="mb-4">
+              <h3 className="text-sm uppercase font-semibold text-gray-500 tracking-wide mb-2">Produits et détails</h3>
+              <div className="space-y-2">
+                {order.products.map((product) =>
+                  product.variants.map((variant, index) => (
+                    <div key={index} className="flex items-center bg-gray-50 p-2">
+                      <img
+                        src={variant.image || '/placeholder-image.png'}
+                        alt="Product"
+                        className="w-12 h-12 object-cover mr-2"
+                      />
+                      <div className="flex flex-col text-sm">
+                        <span className="font-medium text-gray-700">Couleur: {variant.color}</span>
+                        <span className="text-gray-500">Quantité: {variant.quantity}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="text-sm uppercase font-semibold text-gray-500 tracking-wide mb-2">Adresse de livraison</h3>
+              <div className="flex items-start space-x-2 text-sm text-gray-600">
+                <FiMapPin className="mt-1" />
+                <p>
+                  {order.shippingAddress.fullName}, {order.shippingAddress.address}, {order.shippingAddress.city},{' '}
+                  {order.shippingAddress.postalCode}, {order.shippingAddress.country || 'FR'}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <FiPackage className="text-lg" />
+                <span className="font-medium">Total Quantités: {totalQuantity}</span>
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

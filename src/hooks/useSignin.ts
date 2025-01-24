@@ -18,14 +18,11 @@ const useSignin = () => {
 
   const signin = async ({ email, password }: SignInData) => {
     try {
-      // Sign in user
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
 
-      // Get the token from the signed-in user
       const token = await user.getIdToken()
 
-      // Store the token in localStorage
       localStorage.setItem('token', token)
 
       setResponse({ ...response, user: user })
