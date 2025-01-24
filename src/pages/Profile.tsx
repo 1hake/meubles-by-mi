@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { toast } from 'react-toastify'
 
 import MyTab from '../components/common/Tabs'
 import UserOrdersPage from '../components/Users/UserOrders'
@@ -8,34 +9,37 @@ import { useUsers } from '../hooks/useUsers'
 
 const Profile: React.FC = () => {
   const { currentUser } = useAuth()
-  const { getUserById, editUser } = useUsers()
+  console.log('🚀 ~ currentUser:', currentUser)
+  const { users, editUser, loading, error } = useUsers()
   const [userData, setUserData] = React.useState(null)
   console.log('🚀 ~ userData:', userData)
 
-  React.useEffect(() => {
-    const fetchUserData = async () => {
-      if (currentUser && currentUser.uid) {
-        const user = await getUserById(currentUser.uid)
-        console.log('🚀 ~ fetchUserData ~ user:', user)
-        setUserData(user)
-      }
-    }
-    fetchUserData()
-  }, [currentUser, getUserById])
+  useEffect(() => {
+    const user = users.find((user) => user.id === currentUser.id)
+    setUserData(user)
+  }, [users])
 
-  const handleEditUser = async (updatedData) => {
-    if (currentUser && currentUser.uid) {
-      await editUser(currentUser.uid, updatedData)
-    }
+  const handleEditUser = (updatedData) => {
+    editUser(userData.userId, updatedData)
+      .then(() => {
+        toast.success('Vos informations ont été mises a jour')
+      })
+      .catch((err) => {
+        console.error('Error updating user:', err)
+      })
   }
 
   const categories = {
-    'Mes commandes': <UserOrdersPage />
-    // 'Mes informations': userData ? (
-    //   <UserProfileForm userData={userData} onEditUser={handleEditUser} />
-    // ) : (
-    //   <p>Loading user data...</p>
-    // )
+    'Mes commandes': <UserOrdersPage />,
+    'Mes informations': loading ? (
+      <p>Loading user data...</p>
+    ) : error ? (
+      <p>{error}</p>
+    ) : userData ? (
+      <UserProfileForm userData={userData} onEditUser={handleEditUser} />
+    ) : (
+      <p>No user data available.</p>
+    )
   }
 
   return (

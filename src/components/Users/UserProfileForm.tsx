@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 
+import Button from '../common/Button'
+import Input from '../common/inputs/Input'
+
 interface UserProfileFormProps {
   userData: any
   onEditUser: (updatedData: any) => Promise<void>
@@ -23,47 +26,85 @@ const UserProfileForm: React.FC<UserProfileFormProps> = ({ userData, onEditUser 
     try {
       await onEditUser(formData)
     } catch (error) {
-      console.error('Failed to update user data:', error)
+      console.error('Échec de la mise à jour des données utilisateur :', error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className=" bg-white p-6 max-w-4xl mx-auto grid grid-cols-1 gap-6 md:grid-cols-2 focus:outline-none"
+    >
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Name
-        </label>
-        <input
+        <Input
           type="text"
-          name="name"
-          id="name"
-          value={formData.name || ''}
+          name="fullName"
+          id="fullName"
+          label="Nom complet"
+          value={formData.fullName || ''}
           onChange={handleChange}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
         />
       </div>
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
+        <Input
           type="email"
           name="email"
           id="email"
+          label="Email"
           value={formData.email || ''}
           onChange={handleChange}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
         />
       </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-      >
-        {isSubmitting ? 'Saving...' : 'Save Changes'}
-      </button>
+      <div>
+        <Input
+          type="text"
+          name="address"
+          id="address"
+          label="Adresse"
+          value={formData.address || ''}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <Input
+          type="text"
+          name="postalCode"
+          id="postalCode"
+          label="Code postal"
+          value={formData.postalCode || ''}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <Input type="text" name="city" id="city" label="Ville" value={formData.city || ''} onChange={handleChange} />
+      </div>
+      <div>
+        <Input
+          type="text"
+          name="country"
+          id="country"
+          label="Pays"
+          value={formData.country || ''}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="md:col-span-2">
+        <Input
+          type="password"
+          name="password"
+          id="password"
+          label="Mot de passe"
+          value={formData.password || ''}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="md:col-span-2">
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? 'Enregistrement...' : 'Sauvegarder les modifications'}
+        </Button>
+      </div>
     </form>
   )
 }

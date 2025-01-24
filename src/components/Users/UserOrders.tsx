@@ -48,10 +48,7 @@ const UserOrdersPage: React.FC = () => {
         )
 
         return (
-          <div
-            key={order.orderId}
-            className="bg-white border border-gray-100 shadow-lg rounded-xl m-2 p-4 w-full hover:shadow-xl"
-          >
+          <div key={order.orderId} className="bg-white border-2 rounded-md border-black m-2 p-4 w-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2 text-gray-600">
                 <FiCalendar className="text-xl" />
@@ -65,11 +62,11 @@ const UserOrdersPage: React.FC = () => {
               <div className="space-y-2">
                 {order.products.map((product) =>
                   product.variants.map((variant, index) => (
-                    <div key={index} className="flex items-center bg-gray-50 rounded-lg p-2 shadow-sm">
+                    <div key={index} className="flex items-center bg-gray-50 p-2">
                       <img
                         src={variant.image || '/placeholder-image.png'}
                         alt="Product"
-                        className="w-12 h-12 object-cover rounded-md mr-2"
+                        className="w-12 h-12 object-cover mr-2"
                       />
                       <div className="flex flex-col text-sm">
                         <span className="font-medium text-gray-700">Couleur: {variant.color}</span>
