@@ -17,6 +17,7 @@ interface User {
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([])
+  console.log('🚀 ~ useUsers ~ users:', users)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 

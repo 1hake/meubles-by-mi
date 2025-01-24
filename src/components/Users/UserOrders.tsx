@@ -39,9 +39,9 @@ const UserOrdersPage: React.FC = () => {
   }
 
   return (
-    <div className="px-4 flex flex-wrap justify-center">
+    <div className="flex flex-wrap justify-center">
       {orders.map((order) => {
-        const formattedDate = new Date(order.orderDate).toLocaleDateString('fr-FR')
+        const formattedDate = new Date(order.orderDate.seconds * 1000).toLocaleDateString('fr-FR')
         const totalQuantity = order.products.reduce(
           (total, product) => total + product.variants.reduce((sum, variant) => sum + variant.quantity, 0),
           0
@@ -50,7 +50,7 @@ const UserOrdersPage: React.FC = () => {
         return (
           <div
             key={order.orderId}
-            className="bg-white border border-gray-100 shadow-lg rounded-xl m-2 p-4 w-full sm:w-1/2 lg:w-1/3 hover:shadow-xl"
+            className="bg-white border border-gray-100 shadow-lg rounded-xl m-2 p-4 w-full hover:shadow-xl"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2 text-gray-600">

@@ -1,6 +1,7 @@
 const { onRequest } = require('firebase-functions/v2/https')
 const { defineSecret } = require('firebase-functions/params')
-const stripeSecretName = 'STRIPE_LIVE_SECRET'
+// const stripeSecretName = 'STRIPE_LIVE_SECRET'
+const stripeSecretName = 'STRIPE_TEST_SECRET'
 // const stripeSkTest = defineSecret(stripeSecretName)
 
 const stripeLiveName = defineSecret(stripeSecretName)

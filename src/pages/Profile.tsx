@@ -10,6 +10,7 @@ const Profile: React.FC = () => {
   const { currentUser } = useAuth()
   const { getUserById, editUser } = useUsers()
   const [userData, setUserData] = React.useState(null)
+  console.log('🚀 ~ userData:', userData)
 
   React.useEffect(() => {
     const fetchUserData = async () => {
@@ -29,17 +30,17 @@ const Profile: React.FC = () => {
   }
 
   const categories = {
-    'Mes commandes': <UserOrdersPage />,
-    'Mes informations': userData ? (
-      <UserProfileForm userData={userData} onEditUser={handleEditUser} />
-    ) : (
-      <p>Loading user data...</p>
-    )
+    'Mes commandes': <UserOrdersPage />
+    // 'Mes informations': userData ? (
+    //   <UserProfileForm userData={userData} onEditUser={handleEditUser} />
+    // ) : (
+    //   <p>Loading user data...</p>
+    // )
   }
 
   return (
-    <div className="flex h-screen w-full justify-center  px-4">
-      <div className="w-full max-w-md">
+    <div className="flex w-full justify-center mt-4">
+      <div className="w-full">
         <MyTab categories={categories} />
       </div>
     </div>

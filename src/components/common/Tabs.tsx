@@ -17,9 +17,9 @@ interface MyTabProps {
 
 export default function MyTab({ categories }: MyTabProps) {
   return (
-    <div className="w-full max-w-md px-2 sm:px-0">
+    <div className="w-full sm:px-0">
       <Tab.Group>
-        <Tab.List className="flex space-x-1 rounded-xl  p-1 gap-2">
+        <Tab.List className="flex space-x-1 rounded-xl p-1 gap-2 w-full justify-center">
           {Object.keys(categories).map((category) => (
             <Tab key={category}>
               {({ selected }) => (
